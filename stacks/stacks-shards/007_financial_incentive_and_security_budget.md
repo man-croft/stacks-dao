@@ -1,0 +1,13 @@
+# Financial Incentive And Security Budget
+
+<figure><img src="https://2842511454-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FH74xqoobupBWwBsVMJhK%2Fuploads%2Fgit-blob-412a18b7879f6c85d7d9cb6d6290ded4fc1a1afc%2Fimage.png?alt=media" alt=""><figcaption><p>image source: <a href="https://www.hiro.so/blog/securing-web3-apps-through-bitcoin-an-overview-of-stacks-consensus-mechanism">Hiro blog</a></p></figcaption></figure>
+
+In order to reorg the Stacks chain, someone must take control of at least 70% of the STX that are currently Stacked and conduct a 51% attack on Bitcoin itself. If acquired at market prices, then at the time of this writing, that amounts to spending nearly $1 billion USD in only the STX stacked.
+
+In addition to this, because of how Stacks achieves Bitcoin finality by not allowing forks, Stacks security budget reaches 51% of Bitcoin's mining power because in order to reverse the chain state you would need to reverse the Bitcoin chain state as well.
+
+Stackers have the new-found power to sign blocks in order to append them to the Stacks chain. However, some of them could refuse to sign, and ensure that no block ever reaches the 70% signature threshold. While this can happen by accident, this is not economically rational behavior -- if they stall the chain for too long, their STX loses their value, and furthermore, they cannot re-stack or liquidate their STX or activate PoX to earn BTC. Also, miners will stop mining if no blocks are getting confirmed, which eliminates their ongoing PoX payouts.
+
+The technical details of how this all works are discussed in the [Block Production](https://docs.stacks.co/learn/block-production) section.
+
+

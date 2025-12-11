@@ -1,0 +1,3 @@
+# TYPE stacks_signer_current_reward_cycle gauge
+stacks_signer_current_reward_cycle 95
+

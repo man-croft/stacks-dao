@@ -1,0 +1,11 @@
+(define-trait dao-adapter-trait
+  (
+    ;; Execute an action on behalf of the DAO.
+    ;; - proposal-id: the proposal that authorized this call.
+    ;; - sender: who initiated execution.
+    ;; - payload: adapter-specific bytes; keep bounded to 256 bytes here.
+    (execute (uint principal (buff 256)) (response bool uint))
+    ;; Optional: return an identifying hash for the adapter logic to allow verification.
+    (adapter-hash () (response (buff 32) uint))
+  )
+)
