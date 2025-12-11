@@ -5,32 +5,32 @@ authors = []
 telemetry = false
 cache_dir = './.cache'
 requirements = []
-[contracts.dao-adapter]
+[contracts.dao-adapter-v1]
 path = 'contracts/traits/dao-adapter.trait'
 clarity_version = 4
 epoch = 'latest'
 
-[contracts.dao-core]
+[contracts.dao-core-v1]
 path = 'contracts/dao-core.clar'
 clarity_version = 4
 epoch = 'latest'
 
-[contracts.dao-treasury]
+[contracts.dao-treasury-v1]
 path = 'contracts/dao-treasury.clar'
 clarity_version = 4
 epoch = 'latest'
 
-[contracts.token]
+[contracts.token-trait-v1]
 path = 'contracts/traits/token.trait'
 clarity_version = 4
 epoch = 'latest'
 
-[contracts.transfer-adapter]
+[contracts.transfer-adapter-v1]
 path = 'contracts/adapters/transfer-adapter.clar'
 clarity_version = 4
 epoch = 'latest'
 
-[contracts.treasury]
+[contracts.treasury-trait-v1]
 path = 'contracts/traits/treasury.trait'
 clarity_version = 4
 epoch = 'latest'

@@ -29,7 +29,7 @@ describe("dao-core governance", () => {
     });
 
     const proposal = simnet.callPublicFn(
-      "dao-core",
+      "dao-core-v1",
       "propose",
       [invalid],
       proposer
@@ -42,7 +42,7 @@ describe("dao-core governance", () => {
     const payload = buildPayload(recipient, 0);
 
     const proposal = simnet.callPublicFn(
-      "dao-core",
+      "dao-core-v1",
       "propose",
       [payload],
       proposer
@@ -51,7 +51,7 @@ describe("dao-core governance", () => {
 
     voters.forEach((voter) => {
       const vote = simnet.callPublicFn(
-        "dao-core",
+        "dao-core-v1",
         "cast-vote",
         [proposalId, forChoice],
         voter
@@ -60,12 +60,12 @@ describe("dao-core governance", () => {
     });
 
     const tally = cvToValue(
-      simnet.getMapEntry("dao-core", "proposals", Cl.tuple({ id: proposalId }))
+      simnet.getMapEntry("dao-core-v1", "proposals", Cl.tuple({ id: proposalId }))
     ) as any;
     expect(BigInt(tally.value["for-votes"].value)).toBe(10n);
 
     const passes = simnet.callReadOnlyFn(
-      "dao-core",
+      "dao-core-v1",
       "proposal-passes",
       [proposalId],
       proposer
@@ -75,7 +75,7 @@ describe("dao-core governance", () => {
     simnet.mineEmptyBlocks(2101);
 
     const queued = simnet.callPublicFn(
-      "dao-core",
+      "dao-core-v1",
       "queue",
       [proposalId],
       proposer
@@ -85,11 +85,11 @@ describe("dao-core governance", () => {
     simnet.mineEmptyBlocks(101);
 
     expect(() =>
-      simnet.callPublicFn("dao-core", "execute", [proposalId], proposer)
+      simnet.callPublicFn("dao-core-v1", "execute", [proposalId], proposer)
     ).toThrow(/ContractCallExpectName/);
 
     const finalState = cvToValue(
-      simnet.getMapEntry("dao-core", "proposals", Cl.tuple({ id: proposalId }))
+      simnet.getMapEntry("dao-core-v1", "proposals", Cl.tuple({ id: proposalId }))
     ) as any;
     expect(finalState.value.executed.value).toBe(false);
   });
@@ -98,7 +98,7 @@ describe("dao-core governance", () => {
     const payload = buildPayload(recipient, 0);
 
     const proposal = simnet.callPublicFn(
-      "dao-core",
+      "dao-core-v1",
       "propose",
       [payload],
       proposer
@@ -106,7 +106,7 @@ describe("dao-core governance", () => {
     expect(proposal.result).toBeOk(proposalId);
 
     const cancelled = simnet.callPublicFn(
-      "dao-core",
+      "dao-core-v1",
       "cancel",
       [proposalId],
       recipient
@@ -114,12 +114,12 @@ describe("dao-core governance", () => {
     expect(cancelled.result).toBeOk(Cl.bool(true));
 
     const state = cvToValue(
-      simnet.getMapEntry("dao-core", "proposals", Cl.tuple({ id: proposalId }))
+      simnet.getMapEntry("dao-core-v1", "proposals", Cl.tuple({ id: proposalId }))
     ) as any;
     expect(state.value.cancelled.value).toBe(true);
 
     const queueAttempt = simnet.callPublicFn(
-      "dao-core",
+      "dao-core-v1",
       "queue",
       [proposalId],
       proposer

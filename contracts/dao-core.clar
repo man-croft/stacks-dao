@@ -1,6 +1,6 @@
 ;; DAO core logic using a single adapter and simple tokenless voting (1 vote per wallet).
 
-(use-trait dao-adapter-trait .dao-adapter.dao-adapter-trait)
+(use-trait dao-adapter-trait .dao-adapter-v1.dao-adapter-trait)
 
 (define-constant ERR_PROPOSAL_MISSING u102)
 (define-constant ERR_VOTING_CLOSED u104)
@@ -25,7 +25,7 @@
 (define-constant PROPOSAL_THRESHOLD_PERCENT u1)
 (define-constant VOTING_PERIOD u2100)
 (define-constant TIMELOCK u100)
-(define-constant ADAPTER .transfer-adapter)
+(define-constant ADAPTER .transfer-adapter-v1)
 
 (define-data-var next-proposal-id uint u1)
 

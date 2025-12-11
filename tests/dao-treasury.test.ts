@@ -8,7 +8,7 @@ const recipient = accounts.get("wallet_2")!;
 describe("dao-treasury", () => {
   it("rejects transfers when not invoked by dao-core", () => {
     const attempt = simnet.callPublicFn(
-      "dao-treasury",
+      "dao-treasury-v1",
       "execute-stx-transfer",
       [Cl.uint(10), Cl.principal(recipient)],
       caller

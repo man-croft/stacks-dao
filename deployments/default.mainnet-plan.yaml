@@ -1,0 +1,53 @@
+---
+id: 0
+name: Mainnet deployment
+network: mainnet
+stacks-node: "https://api.hiro.so"
+bitcoin-node: "http://blockstack:blockstacksystem@bitcoin.blockstack.com:8332"
+plan:
+  batches:
+    - id: 0
+      transactions:
+        - contract-publish:
+            contract-name: dao-adapter-v1
+            expected-sender: SPZ5Q1C2GVSMCWS9NWVDEKHNW04THC75SCQM99B3
+            cost: 7720
+            path: contracts/traits/dao-adapter.trait
+            anchor-block-only: true
+            clarity-version: 4
+        - contract-publish:
+            contract-name: dao-treasury-v1
+            expected-sender: SPZ5Q1C2GVSMCWS9NWVDEKHNW04THC75SCQM99B3
+            cost: 4020
+            path: contracts/dao-treasury.clar
+            anchor-block-only: true
+            clarity-version: 4
+        - contract-publish:
+            contract-name: token-trait-v1
+            expected-sender: SPZ5Q1C2GVSMCWS9NWVDEKHNW04THC75SCQM99B3
+            cost: 3570
+            path: contracts/traits/token.trait
+            anchor-block-only: true
+            clarity-version: 4
+        - contract-publish:
+            contract-name: transfer-adapter-v1
+            expected-sender: SPZ5Q1C2GVSMCWS9NWVDEKHNW04THC75SCQM99B3
+            cost: 10290
+            path: contracts/adapters/transfer-adapter.clar
+            anchor-block-only: true
+            clarity-version: 4
+        - contract-publish:
+            contract-name: dao-core-v1
+            expected-sender: SPZ5Q1C2GVSMCWS9NWVDEKHNW04THC75SCQM99B3
+            cost: 98810
+            path: contracts/dao-core.clar
+            anchor-block-only: true
+            clarity-version: 4
+        - contract-publish:
+            contract-name: treasury-trait-v1
+            expected-sender: SPZ5Q1C2GVSMCWS9NWVDEKHNW04THC75SCQM99B3
+            cost: 1990
+            path: contracts/traits/treasury.trait
+            anchor-block-only: true
+            clarity-version: 4
+      epoch: "3.3"
