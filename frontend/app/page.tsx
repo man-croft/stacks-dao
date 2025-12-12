@@ -11,6 +11,7 @@ export default function Home() {
           yet—this is a barebones wiring for wallet auth using @stacks/connect.
         </p>
         <ConnectButton />
+        <p className="text-xs text-white/60">Network: mainnet</p>
       </main>
     </WalletProvider>
   );

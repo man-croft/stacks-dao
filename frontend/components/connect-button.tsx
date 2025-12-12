@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useWallet } from "./wallet-provider";
 
 export function ConnectButton() {
-  const { address, handleConnect, handleDisconnect } = useWallet();
+  const { address, handleConnect, handleDisconnect, connecting } = useWallet();
   const [busy, setBusy] = useState(false);
 
   const short = address
@@ -12,7 +12,7 @@ export function ConnectButton() {
     : null;
 
   const onClick = async () => {
-    if (busy) return;
+    if (busy || connecting) return;
     try {
       setBusy(true);
       if (address) {
@@ -29,8 +29,13 @@ export function ConnectButton() {
     <button
       onClick={onClick}
       className="rounded-full border border-white/20 bg-white/5 px-4 py-2 text-sm font-medium hover:bg-white/10"
+      disabled={busy || connecting}
     >
-      {busy ? "..." : address ? `Disconnect ${short}` : "Connect wallet"}
+      {busy || connecting
+        ? "..."
+        : address
+          ? `Disconnect ${short}`
+          : "Connect wallet"}
     </button>
   );
 }
