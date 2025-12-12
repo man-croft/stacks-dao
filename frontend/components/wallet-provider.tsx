@@ -1,13 +1,20 @@
 "use client";
 
 import { AppConfig, UserSession } from "@stacks/connect";
-import React, { createContext, useContext, useMemo, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 type WalletContextValue = {
   userSession: UserSession;
   address: string | null;
   handleConnect: () => Promise<void>;
   handleDisconnect: () => void;
+  connecting: boolean;
 };
 
 const WalletContext = createContext<WalletContextValue | undefined>(undefined);
@@ -17,8 +24,30 @@ const userSession = new UserSession({ appConfig });
 
 export function WalletProvider({ children }: { children: React.ReactNode }) {
   const [address, setAddress] = useState<string | null>(null);
+  const [connecting, setConnecting] = useState(false);
+
+  useEffect(() => {
+    const populate = async () => {
+      if (userSession.isSignInPending()) {
+        await userSession.handlePendingSignIn();
+      }
+
+      if (userSession.isUserSignedIn()) {
+        const profile = userSession.loadUserData();
+        const stxAddress =
+          profile?.profile?.stxAddress?.mainnet ||
+          profile?.profile?.stxAddress?.testnet ||
+          null;
+        setAddress(stxAddress);
+      }
+    };
+
+    void populate();
+  }, []);
 
   const handleConnect = async () => {
+    if (connecting) return;
+    setConnecting(true);
     return new Promise<void>((resolve, reject) => {
       userSession.authenticate({
         appDetails: {
@@ -32,9 +61,13 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
             profile?.profile?.stxAddress?.testnet ||
             null;
           setAddress(stxAddress);
+          setConnecting(false);
           resolve();
         },
-        onCancel: () => reject(new Error("User cancelled connect")),
+        onCancel: () => {
+          setConnecting(false);
+          reject(new Error("User cancelled connect"));
+        },
       });
     });
   };
@@ -42,6 +75,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
   const handleDisconnect = () => {
     userSession.signUserOut();
     setAddress(null);
+    setConnecting(false);
   };
 
   const value = useMemo(
@@ -50,8 +84,9 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       address,
       handleConnect,
       handleDisconnect,
+      connecting,
     }),
-    [address]
+    [address, connecting]
   );
 
   return (
