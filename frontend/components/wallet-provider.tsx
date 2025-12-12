@@ -1,8 +1,14 @@
 "use client";
 
-import { AppConfig, UserSession } from "@stacks/connect";
+import {
+  connect,
+  disconnect,
+  getLocalStorage,
+  isConnected,
+} from "@stacks/connect";
 import React, {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -10,7 +16,6 @@ import React, {
 } from "react";
 
 type WalletContextValue = {
-  userSession: UserSession;
   address: string | null;
   handleConnect: () => Promise<void>;
   handleDisconnect: () => void;
@@ -19,74 +24,49 @@ type WalletContextValue = {
 
 const WalletContext = createContext<WalletContextValue | undefined>(undefined);
 
-const appConfig = new AppConfig(["store_write", "publish_data"]);
-const userSession = new UserSession({ appConfig });
-
 export function WalletProvider({ children }: { children: React.ReactNode }) {
   const [address, setAddress] = useState<string | null>(null);
   const [connecting, setConnecting] = useState(false);
 
   useEffect(() => {
-    const populate = async () => {
-      if (userSession.isSignInPending()) {
-        await userSession.handlePendingSignIn();
-      }
-
-      if (userSession.isUserSignedIn()) {
-        const profile = userSession.loadUserData();
-        const stxAddress =
-          profile?.profile?.stxAddress?.mainnet ||
-          profile?.profile?.stxAddress?.testnet ||
-          null;
-        setAddress(stxAddress);
-      }
-    };
-
-    void populate();
+    if (!isConnected()) return;
+    const cache = getLocalStorage();
+    const stored =
+      cache?.addresses?.stx?.[0]?.address ||
+      cache?.addresses?.btc?.[0]?.address ||
+      null;
+    setAddress(stored);
   }, []);
 
-  const handleConnect = async () => {
+  const handleConnect = useCallback(async () => {
     if (connecting) return;
     setConnecting(true);
-    return new Promise<void>((resolve, reject) => {
-      userSession.authenticate({
-        appDetails: {
-          name: "Stacks DAO",
-          icon: `${window.location.origin}/favicon.ico`,
-        },
-        onFinish: () => {
-          const profile = userSession.loadUserData();
-          const stxAddress =
-            profile?.profile?.stxAddress?.mainnet ||
-            profile?.profile?.stxAddress?.testnet ||
-            null;
-          setAddress(stxAddress);
-          setConnecting(false);
-          resolve();
-        },
-        onCancel: () => {
-          setConnecting(false);
-          reject(new Error("User cancelled connect"));
-        },
-      });
-    });
-  };
+    try {
+      const response = await connect();
+      const stxAddress =
+        response?.addresses?.stx?.[0]?.address ||
+        response?.addresses?.[0]?.address ||
+        null;
+      setAddress(stxAddress);
+    } finally {
+      setConnecting(false);
+    }
+  }, [connecting]);
 
-  const handleDisconnect = () => {
-    userSession.signUserOut();
+  const handleDisconnect = useCallback(() => {
+    disconnect();
     setAddress(null);
     setConnecting(false);
-  };
+  }, []);
 
   const value = useMemo(
     () => ({
-      userSession,
       address,
       handleConnect,
       handleDisconnect,
       connecting,
     }),
-    [address, connecting]
+    [address, connecting, handleConnect, handleDisconnect]
   );
 
   return (
