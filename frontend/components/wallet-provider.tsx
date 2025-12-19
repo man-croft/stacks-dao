@@ -1,10 +1,10 @@
 "use client";
 
 import {
-  connect,
+  showConnect,
   disconnect,
-  getLocalStorage,
-  isConnected,
+  AppConfig,
+  UserSession,
 } from "@stacks/connect";
 import React, {
   createContext,
@@ -24,37 +24,51 @@ type WalletContextValue = {
 
 const WalletContext = createContext<WalletContextValue | undefined>(undefined);
 
+const appConfig = new AppConfig(['store_write', 'publish_data']);
+const userSession = new UserSession({ appConfig });
+
 export function WalletProvider({ children }: { children: React.ReactNode }) {
   const [address, setAddress] = useState<string | null>(null);
   const [connecting, setConnecting] = useState(false);
 
   useEffect(() => {
-    if (!isConnected()) return;
-    const cache = getLocalStorage();
-    const stored =
-      cache?.addresses?.stx?.[0]?.address ||
-      cache?.addresses?.btc?.[0]?.address ||
-      null;
-    setAddress(stored);
+    if (userSession.isUserSignedIn()) {
+      const userData = userSession.loadUserData();
+      const stxAddress = userData.profile.stxAddress.mainnet || null;
+      setAddress(stxAddress);
+    }
   }, []);
 
   const handleConnect = useCallback(async () => {
     if (connecting) return;
     setConnecting(true);
     try {
-      const response = await connect();
-      const stxAddress =
-        response?.addresses?.stx?.[0]?.address ||
-        response?.addresses?.[0]?.address ||
-        null;
-      setAddress(stxAddress);
-    } finally {
+      await showConnect({
+        appDetails: {
+          name: "Stacks DAO",
+          icon: typeof window !== 'undefined' ? window.location.origin + "/favicon.ico" : "",
+        },
+        onFinish: () => {
+          if (userSession.isUserSignedIn()) {
+            const userData = userSession.loadUserData();
+            const stxAddress = userData.profile.stxAddress.mainnet || null;
+            setAddress(stxAddress);
+          }
+          setConnecting(false);
+        },
+        onCancel: () => {
+          setConnecting(false);
+        },
+        userSession,
+      });
+    } catch (error) {
       setConnecting(false);
     }
   }, [connecting]);
 
   const handleDisconnect = useCallback(() => {
     disconnect();
+    userSession.signUserOut();
     setAddress(null);
     setConnecting(false);
   }, []);
