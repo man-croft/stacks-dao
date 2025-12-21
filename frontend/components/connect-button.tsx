@@ -38,6 +38,7 @@ export function ConnectButton() {
       disabled={busy || connecting}
       aria-busy={busy || connecting}
       data-state={address ? "connected" : "disconnected"}
+      title={address || undefined}
     >
       {statusLabel}
     </button>
