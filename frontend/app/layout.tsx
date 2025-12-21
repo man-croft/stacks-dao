@@ -2,9 +2,12 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://stacks-dao.example"),
   title: "Stacks DAO",
   description: "Token-governed treasury DAO on Stacks",
   applicationName: "Stacks DAO",
+  keywords: ["Stacks", "DAO", "governance", "treasury"],
+  authors: [{ name: "Stacks DAO" }],
   openGraph: {
     title: "Stacks DAO",
     description: "Token-governed treasury DAO on Stacks",
