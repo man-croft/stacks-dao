@@ -67,30 +67,30 @@ plan:
             contract-name: dao-adapter-v1
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             path: contracts/traits/dao-adapter.trait
-            clarity-version: 4
-        - emulated-contract-publish:
-            contract-name: dao-treasury-v1
-            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            path: contracts/dao-treasury.clar
-            clarity-version: 4
+            clarity-version: 2
         - emulated-contract-publish:
             contract-name: token-trait-v1
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             path: contracts/traits/token.trait
-            clarity-version: 4
+            clarity-version: 2
+        - emulated-contract-publish:
+            contract-name: dao-treasury-v1
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: contracts/dao-treasury.clar
+            clarity-version: 2
         - emulated-contract-publish:
             contract-name: transfer-adapter-v1
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             path: contracts/adapters/transfer-adapter.clar
-            clarity-version: 4
+            clarity-version: 2
         - emulated-contract-publish:
             contract-name: dao-core-v1
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             path: contracts/dao-core.clar
-            clarity-version: 4
+            clarity-version: 2
         - emulated-contract-publish:
             contract-name: treasury-trait-v1
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             path: contracts/traits/treasury.trait
-            clarity-version: 4
-      epoch: "3.3"
+            clarity-version: 2
+      epoch: "2.5"

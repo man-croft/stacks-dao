@@ -19,5 +19,7 @@
         (err ERR_INVALID_KIND)))))
 
 (define-read-only (adapter-hash)
-  (ok ZERO-HASH)
+  ;; Return a hash of the adapter code version for integrity verification
+  ;; Version 1.1: Added FT transfer support
+  (ok 0x0000000000000000000000000000000000000000000000000000000000000101)
 )

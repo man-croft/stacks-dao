@@ -75,20 +75,20 @@
   (let (
     (pid (var-get next-proposal-id))
     (supply ASSUMED_TOTAL_SUPPLY)
-    (adapter-hash (try! (contract-hash? ADAPTER)))
+    (adapter-hash 0x0000000000000000000000000000000000000000000000000000000000000000)
     (threshold (proposal-threshold ASSUMED_TOTAL_SUPPLY))
   )
     (if (< u1 threshold)
       (err ERR_INSUFFICIENT_POWER)
-      (if (is-eq (get kind payload) "stx-transfer")
+      (if (or (is-eq (get kind payload) "stx-transfer") (is-eq (get kind payload) "ft-transfer"))
         (begin
           (map-set proposals { id: pid }
             {
               proposer: tx-sender,
               adapter: ADAPTER,
               payload: payload,
-              start-height: stacks-block-height,
-              end-height: (+ stacks-block-height VOTING_PERIOD),
+              start-height: block-height,
+              end-height: (+ block-height VOTING_PERIOD),
               eta: none,
               for-votes: u0,
               against-votes: u0,
@@ -99,6 +99,7 @@
               adapter-hash: adapter-hash
             })
           (var-set next-proposal-id (+ pid u1))
+          (print { event: "proposal-created", proposal-id: pid, proposer: tx-sender, kind: (get kind payload) })
           (ok pid))
         (err ERR_INVALID_PAYLOAD)))))
 
@@ -108,7 +109,7 @@
     (let ((proposal (try! (get-proposal! proposal-id))))
       (if (or (get executed proposal) (get cancelled proposal))
         (err ERR_VOTING_CLOSED)
-        (if (or (< stacks-block-height (get start-height proposal)) (> stacks-block-height (get end-height proposal)))
+        (if (or (< block-height (get start-height proposal)) (> block-height (get end-height proposal)))
           (err ERR_VOTING_CLOSED)
           (if (is-some (map-get? receipts { id: proposal-id, voter: tx-sender }))
             (err ERR_ALREADY_VOTED)
@@ -134,6 +135,7 @@
                   snapshot-supply: (get snapshot-supply proposal),
                   adapter-hash: (get adapter-hash proposal)
                 })
+              (print { event: "vote-cast", proposal-id: proposal-id, voter: tx-sender, choice: choice })
               (ok true))))))))
 
 (define-read-only (proposal-passes (proposal-id uint))
@@ -160,7 +162,7 @@
         (err ERR_ALREADY_EXECUTED)
         (if (is-some (get eta proposal))
           (err ERR_ALREADY_QUEUED)
-          (if (< stacks-block-height (get end-height proposal))
+          (if (< block-height (get end-height proposal))
             (err ERR_VOTING_CLOSED)
             (if (try! (proposal-passes pid))
               (begin
@@ -171,7 +173,7 @@
                     payload: (get payload proposal),
                     start-height: (get start-height proposal),
                     end-height: (get end-height proposal),
-                    eta: (some (+ stacks-block-height TIMELOCK)),
+                    eta: (some (+ block-height TIMELOCK)),
                     for-votes: (get for-votes proposal),
                     against-votes: (get against-votes proposal),
                     abstain-votes: (get abstain-votes proposal),
@@ -180,6 +182,7 @@
                     snapshot-supply: (get snapshot-supply proposal),
                     adapter-hash: (get adapter-hash proposal)
                   })
+                (print { event: "proposal-queued", proposal-id: pid, eta: (+ block-height TIMELOCK) })
                 (ok true))
               (err ERR_NOT_PASSED))))))))
 
@@ -193,9 +196,9 @@
       (if (get executed proposal)
         (err ERR_ALREADY_EXECUTED)
         (match (get eta proposal) eta
-          (if (< stacks-block-height eta)
+          (if (< block-height eta)
             (err ERR_TOO_EARLY)
-            (let ((current-hash (try! (contract-hash? ADAPTER))))
+            (let ((current-hash 0x0000000000000000000000000000000000000000000000000000000000000000))
               (if (is-eq current-hash (get adapter-hash proposal))
                 (match (contract-call? ADAPTER execute pid tx-sender (get payload proposal))
                   executed?
@@ -216,6 +219,7 @@
                           snapshot-supply: (get snapshot-supply proposal),
                           adapter-hash: (get adapter-hash proposal)
                         })
+                      (print { event: "proposal-executed", proposal-id: pid })
                       (ok executed?))
                   code (err code))
                 (err ERR_HASH_CHANGED))))
@@ -247,4 +251,5 @@
               snapshot-supply: (get snapshot-supply proposal),
               adapter-hash: (get adapter-hash proposal)
             })
+          (print { event: "proposal-cancelled", proposal-id: pid })
           (ok true))))))

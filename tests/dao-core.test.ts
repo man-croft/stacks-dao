@@ -19,23 +19,23 @@ const buildPayload = (to: string, amount = 0) =>
   });
 
 describe("dao-core governance", () => {
-  it("rejects non stx-transfer payloads", () => {
-    const invalid = Cl.tuple({
+  it("accepts both stx-transfer and ft-transfer payloads", () => {
+    const ftPayload = Cl.tuple({
       kind: Cl.stringAscii("ft-transfer"),
-      amount: Cl.uint(0),
+      amount: Cl.uint(100),
       recipient: Cl.principal(recipient),
-      token: Cl.none(),
+      token: Cl.some(Cl.principal("ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.some-token")),
       memo: Cl.none(),
     });
 
     const proposal = simnet.callPublicFn(
       "dao-core-v1",
       "propose",
-      [invalid],
+      [ftPayload],
       proposer
     );
 
-    expect(proposal.result).toBeErr(Cl.uint(115)); // ERR_INVALID_PAYLOAD
+    expect(proposal.result).toBeOk(proposalId);
   });
 
   it("queues a passing proposal and surfaces execution failures", () => {
