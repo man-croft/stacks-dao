@@ -8,7 +8,7 @@ Structured, sequential checklist to turn this repo into a fully functional DAO w
   - Output: Baseline test/check results captured in notes.
 - [ ] Capture current contract addresses per network  
   - Check `deployments/*.yaml` and `settings/*` for addresses; note any missing mainnet/testnet plans.  
-  - Output: Short inventory of contracts and addresses (simnet/devnet/testnet/mainnet) in `docs/state.md`.
+  - Output: Short inventory of contracts and addresses (simnet/devnet/testnet/mainnet) in `docs/state.md` (file scaffolded, fill when checked).
 
 ## Phase 1 — Governance Design Decisions
 - [x] Choose voting power source  
