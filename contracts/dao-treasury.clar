@@ -25,7 +25,7 @@
 
 (define-public (execute-ft-transfer (token <ft-trait>) (amount uint) (recipient principal) (memo (optional (buff 34))))
   (begin
-    (asserts! (is-eq contract-caller DAO_CORE) (err ERR_UNAUTHORIZED))
+    (asserts! (is-allowed-caller contract-caller) (err ERR_UNAUTHORIZED))
     (try! (as-contract (contract-call? token transfer amount tx-sender recipient memo)))
     (print { event: "ft-transfer", token: (contract-of token), amount: amount, recipient: recipient })
     (ok true)))
