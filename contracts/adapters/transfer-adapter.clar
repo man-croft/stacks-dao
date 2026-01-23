@@ -18,7 +18,7 @@
     (asserts! (is-eq tx-sender DEPLOYER) (err ERR_UNAUTHORIZED))
     (ok (var-set core new-core))))
 
-(define-public (execute (proposal-id uint) (sender principal) (payload (tuple (kind (string-ascii 32)) (amount uint) (recipient principal) (token (optional principal)) (memo (optional (buff 34))))) (token-trait <ft-trait>)))
+(define-public (execute (proposal-id uint) (sender principal) (payload (tuple (kind (string-ascii 32)) (amount uint) (recipient principal) (token (optional principal)) (memo (optional (buff 34))))) (token-trait <ft-trait>))
   (begin
     (asserts! (is-eq contract-caller (var-get core)) (err ERR_UNAUTHORIZED))
     (let ((kind (get kind payload)))
