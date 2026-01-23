@@ -57,7 +57,7 @@ describe("dao-core governance", () => {
     const proposal = simnet.callPublicFn(
       "dao-core-v1",
       "propose",
-      [ftPayload],
+      [Cl.contractPrincipal(deployer, "transfer-adapter-v1"), ftPayload],
       proposer
     );
 
@@ -70,7 +70,7 @@ describe("dao-core governance", () => {
     const proposal = simnet.callPublicFn(
       "dao-core-v1",
       "propose",
-      [payload],
+      [Cl.contractPrincipal(deployer, "transfer-adapter-v1"), payload],
       proposer
     );
     expect(proposal.result).toBeOk(proposalId);
@@ -114,7 +114,11 @@ describe("dao-core governance", () => {
     const execute = simnet.callPublicFn(
       "dao-core-v1", 
       "execute", 
-      [proposalId, Cl.contractPrincipal(deployer, "dao-core-v1")], 
+      [
+        proposalId,
+        Cl.contractPrincipal(deployer, "transfer-adapter-v1"),
+        Cl.contractPrincipal(deployer, "dao-core-v1")
+      ], 
       proposer
     );
     expect(execute.result).toBeOk(Cl.bool(true));
@@ -131,7 +135,7 @@ describe("dao-core governance", () => {
     const proposal = simnet.callPublicFn(
       "dao-core-v1",
       "propose",
-      [payload],
+      [Cl.contractPrincipal(deployer, "transfer-adapter-v1"), payload],
       proposer
     );
     expect(proposal.result).toBeOk(proposalId);
