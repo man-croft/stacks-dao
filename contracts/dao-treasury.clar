@@ -18,7 +18,7 @@
 
 (define-public (execute-stx-transfer (amount uint) (recipient principal))
   (begin
-    (asserts! (is-eq contract-caller DAO_CORE) (err ERR_UNAUTHORIZED))
+    (asserts! (is-allowed-caller contract-caller) (err ERR_UNAUTHORIZED))
     (try! (as-contract (stx-transfer? amount tx-sender recipient)))
     (print { event: "stx-transfer", amount: amount, recipient: recipient })
     (ok true)))
