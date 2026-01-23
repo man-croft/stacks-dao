@@ -5,13 +5,18 @@ authors = []
 telemetry = false
 cache_dir = './.cache'
 requirements = []
+[contracts.token-trait-v1]
+path = 'contracts/traits/token.trait'
+clarity_version = 2
+epoch = '2.5'
+
 [contracts.dao-adapter-v1]
 path = 'contracts/traits/dao-adapter.trait'
 clarity_version = 2
 epoch = '2.5'
 
-[contracts.dao-core-v1]
-path = 'contracts/dao-core.clar'
+[contracts.treasury-trait-v1]
+path = 'contracts/traits/treasury.trait'
 clarity_version = 2
 epoch = '2.5'
 
@@ -20,18 +25,13 @@ path = 'contracts/dao-treasury.clar'
 clarity_version = 2
 epoch = '2.5'
 
-[contracts.token-trait-v1]
-path = 'contracts/traits/token.trait'
-clarity_version = 2
-epoch = '2.5'
-
 [contracts.transfer-adapter-v1]
 path = 'contracts/adapters/transfer-adapter.clar'
 clarity_version = 2
 epoch = '2.5'
 
-[contracts.treasury-trait-v1]
-path = 'contracts/traits/treasury.trait'
+[contracts.dao-core-v1]
+path = 'contracts/dao-core.clar'
 clarity_version = 2
 epoch = '2.5'
 [repl.analysis]

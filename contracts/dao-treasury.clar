@@ -3,23 +3,25 @@
 (use-trait ft-trait .token-trait-v1.ft-trait)
 
 (define-constant ERR_UNAUTHORIZED u101)
-(define-constant DAO_CORE .dao-core-v1)
 (define-constant DEPLOYER tx-sender)
+
+(define-data-var governor principal tx-sender)
 
 (define-map allowed-invokers principal bool)
 
 (define-public (set-allowed-invoker (invoker principal) (allowed bool))
   (begin
-    (asserts! (is-eq contract-caller DAO_CORE) (err ERR_UNAUTHORIZED))
+    (asserts! (is-eq contract-caller (var-get governor)) (err ERR_UNAUTHORIZED))
     (ok (map-set allowed-invokers invoker allowed))))
 
-(define-public (init (invoker principal) (allowed bool))
+(define-public (init (new-governor principal) (invoker principal) (allowed bool))
   (begin
     (asserts! (is-eq tx-sender DEPLOYER) (err ERR_UNAUTHORIZED))
+    (var-set governor new-governor)
     (ok (map-set allowed-invokers invoker allowed))))
 
 (define-private (is-allowed-caller (caller principal))
-  (or (is-eq caller DAO_CORE) (default-to false (map-get? allowed-invokers caller)))
+  (or (is-eq caller (var-get governor)) (default-to false (map-get? allowed-invokers caller)))
 )
 
 (define-read-only (is-authorized (caller principal))

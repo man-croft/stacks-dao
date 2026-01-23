@@ -8,12 +8,19 @@
 (define-constant ERR_INVALID_KIND u102)
 (define-constant ERR_TOKEN_EXPECTED u103)
 (define-constant ZERO-HASH 0x0000000000000000000000000000000000000000000000000000000000000000)
-(define-constant DAO_CORE .dao-core-v1)
 (define-constant TREASURY .dao-treasury-v1)
+(define-constant DEPLOYER tx-sender)
 
-(define-public (execute (proposal-id uint) (sender principal) (payload (tuple (kind (string-ascii 32)) (amount uint) (recipient principal) (token (optional principal)) (memo (optional (buff 34)))) (token-trait <ft-trait>)))
+(define-data-var core principal tx-sender)
+
+(define-public (set-core (new-core principal))
   (begin
-    (asserts! (is-eq contract-caller DAO_CORE) (err ERR_UNAUTHORIZED))
+    (asserts! (is-eq tx-sender DEPLOYER) (err ERR_UNAUTHORIZED))
+    (ok (var-set core new-core))))
+
+(define-public (execute (proposal-id uint) (sender principal) (payload (tuple (kind (string-ascii 32)) (amount uint) (recipient principal) (token (optional principal)) (memo (optional (buff 34))))) (token-trait <ft-trait>))
+  (begin
+    (asserts! (is-eq contract-caller (var-get core)) (err ERR_UNAUTHORIZED))
     (let ((kind (get kind payload)))
       (if (is-eq kind "stx-transfer")
         (contract-call? .dao-treasury-v1 execute-stx-transfer (get amount payload) (get recipient payload))

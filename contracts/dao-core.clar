@@ -26,7 +26,6 @@
 (define-constant PROPOSAL_THRESHOLD_PERCENT u1)
 (define-constant VOTING_PERIOD u2100)
 (define-constant TIMELOCK u100)
-(define-constant ADAPTER .transfer-adapter-v1)
 
 (define-data-var next-proposal-id uint u1)
 
@@ -72,11 +71,11 @@
     proposal (ok proposal)
     (err ERR_PROPOSAL_MISSING)))
 
-(define-public (propose (payload (tuple (kind (string-ascii 32)) (amount uint) (recipient principal) (token (optional principal)) (memo (optional (buff 34))))))
+(define-public (propose (adapter <dao-adapter-trait>) (payload (tuple (kind (string-ascii 32)) (amount uint) (recipient principal) (token (optional principal)) (memo (optional (buff 34))))))
   (let (
     (pid (var-get next-proposal-id))
     (supply ASSUMED_TOTAL_SUPPLY)
-    (adapter-hash 0x0000000000000000000000000000000000000000000000000000000000000000)
+    (adapter-hash (try! (contract-call? adapter adapter-hash)))
     (threshold (proposal-threshold ASSUMED_TOTAL_SUPPLY))
   )
     (if (< u1 threshold)
@@ -86,7 +85,7 @@
           (map-set proposals { id: pid }
             {
               proposer: tx-sender,
-              adapter: ADAPTER,
+              adapter: (contract-of adapter),
               payload: payload,
               start-height: block-height,
               end-height: (+ block-height VOTING_PERIOD),
@@ -123,7 +122,7 @@
               (map-set proposals { id: proposal-id }
                 {
                   proposer: (get proposer proposal),
-                  adapter: ADAPTER,
+                  adapter: (get adapter proposal),
                   payload: (get payload proposal),
                   start-height: (get start-height proposal),
                   end-height: (get end-height proposal),
@@ -170,7 +169,7 @@
                 (map-set proposals { id: pid }
                   {
                     proposer: (get proposer proposal),
-                    adapter: ADAPTER,
+                    adapter: (get adapter proposal),
                     payload: (get payload proposal),
                     start-height: (get start-height proposal),
                     end-height: (get end-height proposal),
@@ -187,11 +186,12 @@
                 (ok true))
               (err ERR_NOT_PASSED))))))))
 
-(define-public (execute (proposal-id uint) (token-trait <ft-trait>))
+(define-public (execute (proposal-id uint) (adapter <dao-adapter-trait>) (token-trait <ft-trait>))
   (let (
     (pid (try! (validate-proposal-id proposal-id)))
     (proposal (try! (get-proposal! pid)))
   )
+    (asserts! (is-eq (contract-of adapter) (get adapter proposal)) (err ERR_INVALID_PAYLOAD))
     (if (get cancelled proposal)
       (err ERR_ALREADY_CANCELLED)
       (if (get executed proposal)
@@ -199,15 +199,15 @@
         (match (get eta proposal) eta
           (if (< block-height eta)
             (err ERR_TOO_EARLY)
-            (let ((current-hash 0x0000000000000000000000000000000000000000000000000000000000000000))
+            (let ((current-hash (try! (contract-call? adapter adapter-hash))))
               (if (is-eq current-hash (get adapter-hash proposal))
-                (match (contract-call? ADAPTER execute pid tx-sender (get payload proposal) token-trait)
+                (match (contract-call? adapter execute pid tx-sender (get payload proposal) token-trait)
                   executed?
                     (begin
                       (map-set proposals { id: pid }
                         {
                           proposer: (get proposer proposal),
-                          adapter: ADAPTER,
+                          adapter: (contract-of adapter),
                           payload: (get payload proposal),
                           start-height: (get start-height proposal),
                           end-height: (get end-height proposal),
@@ -239,7 +239,7 @@
           (map-set proposals { id: pid }
             {
               proposer: (get proposer proposal),
-              adapter: ADAPTER,
+              adapter: (get adapter proposal),
               payload: (get payload proposal),
               start-height: (get start-height proposal),
               end-height: (get end-height proposal),
