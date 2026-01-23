@@ -16,6 +16,9 @@
   (or (is-eq caller DAO_CORE) (default-to false (map-get? allowed-invokers caller)))
 )
 
+(define-read-only (is-authorized (caller principal))
+  (ok (is-allowed-caller caller)))
+
 (define-public (execute-stx-transfer (amount uint) (recipient principal))
   (begin
     (asserts! (is-allowed-caller contract-caller) (err ERR_UNAUTHORIZED))
