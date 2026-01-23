@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { Cl, cvToValue } from "@stacks/transactions";
 
 const accounts = simnet.getAccounts();
+const deployer = "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM";
 const proposer = accounts.get("wallet_1")!;
 const recipient = accounts.get("wallet_2")!;
 const voters = Array.from(accounts.values()).slice(0, 10);
@@ -19,12 +20,23 @@ const buildPayload = (to: string, amount = 0) =>
   });
 
 describe("dao-core governance", () => {
+  // Bootstrap the treasury
+  it("initializes treasury whitelist", () => {
+    const init = simnet.callPublicFn(
+      "dao-treasury-v1",
+      "init",
+      [Cl.contractPrincipal(deployer, "transfer-adapter-v1"), Cl.bool(true)],
+      deployer
+    );
+    expect(init.result).toBeOk(Cl.bool(true));
+  });
+
   it("accepts both stx-transfer and ft-transfer payloads", () => {
     const ftPayload = Cl.tuple({
       kind: Cl.stringAscii("ft-transfer"),
       amount: Cl.uint(100),
       recipient: Cl.principal(recipient),
-      token: Cl.some(Cl.principal("ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.some-token")),
+      token: Cl.some(Cl.principal(`${deployer}.some-token`)),
       memo: Cl.none(),
     });
 
@@ -38,8 +50,8 @@ describe("dao-core governance", () => {
     expect(proposal.result).toBeOk(proposalId);
   });
 
-  it("queues a passing proposal and surfaces execution failures", () => {
-    const payload = buildPayload(recipient, 0);
+  it("queues and executes a passing proposal", () => {
+    const payload = buildPayload(recipient, 100);
 
     const proposal = simnet.callPublicFn(
       "dao-core-v1",
@@ -84,14 +96,19 @@ describe("dao-core governance", () => {
 
     simnet.mineEmptyBlocks(101);
 
-    expect(() =>
-      simnet.callPublicFn("dao-core-v1", "execute", [proposalId], proposer)
-    ).toThrow(/ContractCallExpectName/);
+    // Pass a dummy trait for STX transfer (e.g. dao-core itself)
+    const execute = simnet.callPublicFn(
+      "dao-core-v1", 
+      "execute", 
+      [proposalId, Cl.contractPrincipal(deployer, "dao-core-v1")], 
+      proposer
+    );
+    expect(execute.result).toBeOk(Cl.bool(true));
 
     const finalState = cvToValue(
       simnet.getMapEntry("dao-core-v1", "proposals", Cl.tuple({ id: proposalId }))
     ) as any;
-    expect(finalState.value.executed.value).toBe(false);
+    expect(finalState.value.executed.value).toBe(true);
   });
 
   it("allows cancellation of a proposal and blocks further progress", () => {
