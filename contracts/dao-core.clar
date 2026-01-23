@@ -1,6 +1,7 @@
 ;; DAO core logic using a single adapter and simple tokenless voting (1 vote per wallet).
 
 (use-trait dao-adapter-trait .dao-adapter-v1.dao-adapter-trait)
+(use-trait ft-trait .token-trait-v1.ft-trait)
 
 (define-constant ERR_PROPOSAL_MISSING u102)
 (define-constant ERR_VOTING_CLOSED u104)
@@ -186,7 +187,7 @@
                 (ok true))
               (err ERR_NOT_PASSED))))))))
 
-(define-public (execute (proposal-id uint))
+(define-public (execute (proposal-id uint) (token-trait <ft-trait>))
   (let (
     (pid (try! (validate-proposal-id proposal-id)))
     (proposal (try! (get-proposal! pid)))
@@ -200,7 +201,7 @@
             (err ERR_TOO_EARLY)
             (let ((current-hash 0x0000000000000000000000000000000000000000000000000000000000000000))
               (if (is-eq current-hash (get adapter-hash proposal))
-                (match (contract-call? ADAPTER execute pid tx-sender (get payload proposal))
+                (match (contract-call? ADAPTER execute pid tx-sender (get payload proposal) token-trait)
                   executed?
                     (begin
                       (map-set proposals { id: pid }
