@@ -6,6 +6,7 @@
 (define-constant ERR_DAO_NOT_SET u100)
 (define-constant ERR_UNAUTHORIZED u101)
 (define-constant ERR_INVALID_KIND u102)
+(define-constant ERR_TOKEN_EXPECTED u103)
 (define-constant ZERO-HASH 0x0000000000000000000000000000000000000000000000000000000000000000)
 (define-constant DAO_CORE .dao-core-v1)
 (define-constant TREASURY .dao-treasury-v1)
