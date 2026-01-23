@@ -76,7 +76,7 @@
   (let (
     (pid (var-get next-proposal-id))
     (supply ASSUMED_TOTAL_SUPPLY)
-    (adapter-hash 0x0000000000000000000000000000000000000000000000000000000000000000)
+    (adapter-hash (try! (contract-call? ADAPTER adapter-hash)))
     (threshold (proposal-threshold ASSUMED_TOTAL_SUPPLY))
   )
     (if (< u1 threshold)
@@ -199,7 +199,7 @@
         (match (get eta proposal) eta
           (if (< block-height eta)
             (err ERR_TOO_EARLY)
-            (let ((current-hash 0x0000000000000000000000000000000000000000000000000000000000000000))
+            (let ((current-hash (try! (contract-call? ADAPTER adapter-hash))))
               (if (is-eq current-hash (get adapter-hash proposal))
                 (match (contract-call? ADAPTER execute pid tx-sender (get payload proposal) token-trait)
                   executed?
