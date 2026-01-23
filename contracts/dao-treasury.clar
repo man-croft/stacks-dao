@@ -4,12 +4,18 @@
 
 (define-constant ERR_UNAUTHORIZED u101)
 (define-constant DAO_CORE .dao-core-v1)
+(define-constant DEPLOYER tx-sender)
 
 (define-map allowed-invokers principal bool)
 
 (define-public (set-allowed-invoker (invoker principal) (allowed bool))
   (begin
     (asserts! (is-eq contract-caller DAO_CORE) (err ERR_UNAUTHORIZED))
+    (ok (map-set allowed-invokers invoker allowed))))
+
+(define-public (init (invoker principal) (allowed bool))
+  (begin
+    (asserts! (is-eq tx-sender DEPLOYER) (err ERR_UNAUTHORIZED))
     (ok (map-set allowed-invokers invoker allowed))))
 
 (define-private (is-allowed-caller (caller principal))
