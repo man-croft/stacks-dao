@@ -1,10 +1,10 @@
 "use client";
 
 import {
-  connect,
+  showConnect,
   disconnect,
-  getLocalStorage,
-  isConnected,
+  UserSession,
+  AppConfig,
 } from "@stacks/connect";
 import React, {
   createContext,
@@ -15,9 +15,12 @@ import React, {
   useState,
 } from "react";
 
+const appConfig = new AppConfig(["store_write", "publish_data"]);
+export const userSession = new UserSession({ appConfig });
+
 type WalletContextValue = {
   address: string | null;
-  handleConnect: () => Promise<void>;
+  handleConnect: () => void;
   handleDisconnect: () => void;
   connecting: boolean;
 };
@@ -29,28 +32,29 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
   const [connecting, setConnecting] = useState(false);
 
   useEffect(() => {
-    if (!isConnected()) return;
-    const cache = getLocalStorage();
-    const stored =
-      cache?.addresses?.stx?.[0]?.address ||
-      cache?.addresses?.btc?.[0]?.address ||
-      null;
-    setAddress(stored);
+    if (userSession.isUserSignedIn()) {
+      setAddress(userSession.loadUserData().profile.stxAddress.testnet);
+    }
   }, []);
 
-  const handleConnect = useCallback(async () => {
+  const handleConnect = useCallback(() => {
     if (connecting) return;
     setConnecting(true);
-    try {
-      const response = await connect();
-      const stxAddress =
-        response?.addresses?.stx?.[0]?.address ||
-        response?.addresses?.[0]?.address ||
-        null;
-      setAddress(stxAddress);
-    } finally {
-      setConnecting(false);
-    }
+    showConnect({
+      appDetails: {
+        name: "Stacks DAO",
+        icon: typeof window !== "undefined" ? window.location.origin + "/favicon.ico" : "",
+      },
+      redirectTo: "/",
+      onFinish: () => {
+        const userData = userSession.loadUserData();
+        setAddress(userData.profile.stxAddress.testnet);
+        setConnecting(false);
+      },
+      onCancel: () => {
+        setConnecting(false);
+      },
+    });
   }, [connecting]);
 
   const handleDisconnect = useCallback(() => {
