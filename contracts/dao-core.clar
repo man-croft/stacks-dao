@@ -152,7 +152,7 @@
                   snapshot-supply: (get snapshot-supply proposal),
                   adapter-hash: (get adapter-hash proposal)
                 })
-              (print { event: "vote-cast", proposal-id: proposal-id, voter: tx-sender, choice: choice })
+              (print { event: "vote-cast", proposal-id: proposal-id, voter: tx-sender, choice: choice, weight: u1, for: (+ (get for-votes proposal) for-delta), against: (+ (get against-votes proposal) against-delta), abstain: (+ (get abstain-votes proposal) abstain-delta) })
               (ok true))))))))
 
 (define-read-only (proposal-passes (proposal-id uint))
