@@ -15,6 +15,8 @@
 (define-constant ERR_HASH_CHANGED u113)
 (define-constant ERR_INSUFFICIENT_POWER u114)
 (define-constant ERR_INVALID_PAYLOAD u115)
+(define-constant ERR_INVALID_PARAMETER u116)
+(define-constant ERR_UNAUTHORIZED u117)
 
 (define-constant CHOICE_AGAINST u0)
 (define-constant CHOICE_FOR u1)
@@ -22,10 +24,12 @@
 
 (define-constant ONE_HUNDRED u100)
 (define-constant ASSUMED_TOTAL_SUPPLY u100)
-(define-constant QUORUM_PERCENT u10)
-(define-constant PROPOSAL_THRESHOLD_PERCENT u1)
-(define-constant VOTING_PERIOD u2100)
-(define-constant TIMELOCK u100)
+
+;; Governance Parameters (Upgradeable)
+(define-data-var quorum-percent uint u10)
+(define-data-var proposal-threshold-percent uint u1)
+(define-data-var voting-period uint u2100)
+(define-data-var timelock uint u100)
 
 (define-data-var next-proposal-id uint u1)
 
@@ -54,12 +58,25 @@
 )
 
 (define-private (proposal-threshold (supply uint))
-  (/ (* supply PROPOSAL_THRESHOLD_PERCENT) ONE_HUNDRED)
+  (/ (* supply (var-get proposal-threshold-percent)) ONE_HUNDRED)
 )
 
 (define-private (quorum-needed (supply uint))
-  (/ (* supply QUORUM_PERCENT) ONE_HUNDRED)
+  (/ (* supply (var-get quorum-percent)) ONE_HUNDRED)
 )
+
+(define-public (set-parameter (parameter (string-ascii 32)) (value uint))
+  (begin
+    (asserts! (is-eq contract-caller (as-contract tx-sender)) (err ERR_UNAUTHORIZED))
+    (if (is-eq parameter "quorum-percent")
+      (ok (var-set quorum-percent value))
+      (if (is-eq parameter "proposal-threshold-percent")
+        (ok (var-set proposal-threshold-percent value))
+        (if (is-eq parameter "voting-period")
+          (ok (var-set voting-period value))
+          (if (is-eq parameter "timelock")
+            (ok (var-set timelock value))
+            (err ERR_INVALID_PARAMETER)))))))
 
 (define-private (validate-proposal-id (proposal-id uint))
   (if (and (>= proposal-id u1) (< proposal-id (var-get next-proposal-id)))
@@ -88,7 +105,7 @@
               adapter: (contract-of adapter),
               payload: payload,
               start-height: block-height,
-              end-height: (+ block-height VOTING_PERIOD),
+              end-height: (+ block-height (var-get voting-period)),
               eta: none,
               for-votes: u0,
               against-votes: u0,
@@ -173,7 +190,7 @@
                     payload: (get payload proposal),
                     start-height: (get start-height proposal),
                     end-height: (get end-height proposal),
-                    eta: (some (+ block-height TIMELOCK)),
+                    eta: (some (+ block-height (var-get timelock))),
                     for-votes: (get for-votes proposal),
                     against-votes: (get against-votes proposal),
                     abstain-votes: (get abstain-votes proposal),
