@@ -20,24 +20,24 @@ Structured, sequential checklist to turn this repo into a fully functional DAO w
   - Output: Allowed payload schema and adapter list in `docs/governance-design.md`.
 
 ## Phase 2 — Contract Hardening & Features
-- [ ] Implement real voting power  
+- [x] Implement real voting power  
   - Wire snapshot of chosen token/balance at proposal creation; adjust `proposal-threshold`, `quorum-needed`, and vote weights.  
   - Add delegation if chosen.  
   - Output: Updated `contracts/dao-core.clar`, migration notes.
-- [ ] Expand adapters/treasury  
+- [x] Expand adapters/treasury  
   - Implement FT branch in `transfer-adapter.clar` and `dao-treasury.clar` to satisfy `treasury-trait`.  
   - Optionally add adapter registry or per-proposal adapter selection.  
   - Output: Updated adapter/treasury contracts.
-- [ ] Strengthen integrity checks  
+- [x] Strengthen integrity checks  
   - Return real `adapter-hash`; store payload hash at proposal; verify at execute; guard cancel permissions (proposer or threshold).  
   - Emit prints/events for propose/vote/queue/execute/cancel.  
   - Output: Updated `dao-core.clar`, documented error codes/events.
-- [ ] Parameter review  
+- [x] Parameter review  
   - Revisit quorum/threshold/voting-period/timelock based on design; expose constants centrally.  
   - Output: Parameter table in `docs/governance-design.md`.
 
 ## Phase 3 — Tests & Quality Gates
-- [ ] Unit tests coverage expansion (Vitest + Clarinet)  
+- [x] Unit tests coverage expansion (Vitest + Clarinet)  
   - Add success-path execution (STX + FT), hash-mismatch rejection, early/late vote, double vote, quorum edge, cancel permission, adapter failure surfacing.  
   - Output: Passing `tests/*.test.ts` with coverage report.
 - [ ] Contract lints/checks  
@@ -48,7 +48,7 @@ Structured, sequential checklist to turn this repo into a fully functional DAO w
   - Output: Additional simulation test file if pursued.
 
 ## Phase 4 — Deployment Pipelines
-- [ ] Scripted deployments  
+- [x] Scripted deployments  
   - Create/update `deployments/*.yaml` for devnet/testnet/mainnet; include ordering and versioning.  
   - Add `scripts/deploy-[net].sh` to publish via Clarinet/Stacks provider.  
   - Output: Reusable deployment scripts and documented addresses in `docs/state.md`.
@@ -57,13 +57,13 @@ Structured, sequential checklist to turn this repo into a fully functional DAO w
   - Output: `docs/upgrade-playbook.md`.
 
 ## Phase 5 — Frontend Scaffold
-- [ ] Create app shell  
+- [x] Create app shell  
   - Choose stack (Next.js + Vite bundling or CRA alternative); set up TypeScript, ESLint/Prettier, UI kit (minimal, custom tokens).  
   - Output: `frontend/` app with base layout, theme tokens, fonts (e.g., Sora + Space Grotesk), and gradient/pattern background.
-- [ ] Wallet & network plumbing  
+- [x] Wallet & network plumbing  
   - Integrate `@stacks/connect` for Leather auth; env-driven contract addresses; Hiro API client for read-only; simnet/devnet toggle.  
   - Output: Auth context/provider, network selector component.
-- [ ] Data layer  
+- [x] Data layer  
   - Services to read proposals, tallies, status (derived state: Voting, Queued, Ready, Executed, Cancelled); block countdowns.  
   - Output: `frontend/src/lib/daoClient.ts` (or similar) with typed calls.
 - [ ] Core screens  
