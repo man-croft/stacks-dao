@@ -15,6 +15,7 @@
 (define-constant ERR_HASH_CHANGED u113)
 (define-constant ERR_INSUFFICIENT_POWER u114)
 (define-constant ERR_INVALID_PAYLOAD u115)
+(define-constant ERR_INVALID_PARAMETER u116)
 
 (define-constant CHOICE_AGAINST u0)
 (define-constant CHOICE_FOR u1)
@@ -22,10 +23,12 @@
 
 (define-constant ONE_HUNDRED u100)
 (define-constant ASSUMED_TOTAL_SUPPLY u100)
-(define-constant QUORUM_PERCENT u10)
-(define-constant PROPOSAL_THRESHOLD_PERCENT u1)
-(define-constant VOTING_PERIOD u2100)
-(define-constant TIMELOCK u100)
+
+;; Governance Parameters (Upgradeable)
+(define-data-var quorum-percent uint u10)
+(define-data-var proposal-threshold-percent uint u1)
+(define-data-var voting-period uint u2100)
+(define-data-var timelock uint u100)
 
 (define-data-var next-proposal-id uint u1)
 
