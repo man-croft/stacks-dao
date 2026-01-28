@@ -152,8 +152,21 @@
                   snapshot-supply: (get snapshot-supply proposal),
                   adapter-hash: (get adapter-hash proposal)
                 })
-              (print { event: "vote-cast", proposal-id: proposal-id, voter: tx-sender, choice: choice })
+              (print { event: "vote-cast", proposal-id: proposal-id, voter: tx-sender, choice: choice, weight: u1, for: (+ (get for-votes proposal) for-delta), against: (+ (get against-votes proposal) against-delta), abstain: (+ (get abstain-votes proposal) abstain-delta) })
               (ok true))))))))
+
+(define-read-only (get-parameters)
+  (ok {
+    quorum-percent: (var-get quorum-percent),
+    proposal-threshold-percent: (var-get proposal-threshold-percent),
+    voting-period: (var-get voting-period),
+    timelock: (var-get timelock)
+  })
+)
+
+(define-read-only (get-proposal (proposal-id uint))
+  (map-get? proposals { id: proposal-id })
+)
 
 (define-read-only (proposal-passes (proposal-id uint))
   (let (
