@@ -16,6 +16,7 @@
 (define-constant ERR_INSUFFICIENT_POWER u114)
 (define-constant ERR_INVALID_PAYLOAD u115)
 (define-constant ERR_INVALID_PARAMETER u116)
+(define-constant ERR_UNAUTHORIZED u117)
 
 (define-constant CHOICE_AGAINST u0)
 (define-constant CHOICE_FOR u1)
@@ -57,12 +58,25 @@
 )
 
 (define-private (proposal-threshold (supply uint))
-  (/ (* supply PROPOSAL_THRESHOLD_PERCENT) ONE_HUNDRED)
+  (/ (* supply (var-get proposal-threshold-percent)) ONE_HUNDRED)
 )
 
 (define-private (quorum-needed (supply uint))
-  (/ (* supply QUORUM_PERCENT) ONE_HUNDRED)
+  (/ (* supply (var-get quorum-percent)) ONE_HUNDRED)
 )
+
+(define-public (set-parameter (parameter (string-ascii 32)) (value uint))
+  (begin
+    (asserts! (is-eq contract-caller (as-contract tx-sender)) (err ERR_UNAUTHORIZED))
+    (if (is-eq parameter "quorum-percent")
+      (ok (var-set quorum-percent value))
+      (if (is-eq parameter "proposal-threshold-percent")
+        (ok (var-set proposal-threshold-percent value))
+        (if (is-eq parameter "voting-period")
+          (ok (var-set voting-period value))
+          (if (is-eq parameter "timelock")
+            (ok (var-set timelock value))
+            (err ERR_INVALID_PARAMETER)))))))
 
 (define-private (validate-proposal-id (proposal-id uint))
   (if (and (>= proposal-id u1) (< proposal-id (var-get next-proposal-id)))
