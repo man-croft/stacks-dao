@@ -59,6 +59,9 @@
 )
 
 (define-private (proposal-threshold (supply uint))
+  ;; WARNING: With ASSUMED_TOTAL_SUPPLY u100, if proposal-threshold-percent > 1,
+  ;; the threshold becomes > 1. Since users have voting power u1, no one can propose.
+  ;; Keep proposal-threshold-percent <= 1% for 1p1v model.
   (/ (* supply (var-get proposal-threshold-percent)) ONE_HUNDRED)
 )
 
