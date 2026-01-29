@@ -48,10 +48,22 @@
   }
 )
 
+
+;; Delegation: delegator -> delegatee
+(define-map delegation principal principal)
+
 (define-map receipts
   { id: uint, voter: principal }
   { choice: uint, weight: uint }
 )
+(define-public (delegate (to principal))
+  (begin
+    (asserts! (not (is-eq tx-sender to)) (err u120)) ;; nie można delegować samemu sobie
+    (map-set delegation tx-sender to)
+    (ok true)))
+
+(define-read-only (get-delegate (user principal))
+  (map-get? delegation user))
 
 (define-private (proposal-threshold (supply uint))
   (/ (* supply PROPOSAL_THRESHOLD_PERCENT) ONE_HUNDRED)
@@ -102,6 +114,7 @@
           (ok pid))
         (err ERR_INVALID_PAYLOAD)))))
 
+;; Głosowanie z uwzględnieniem delegacji
 (define-public (cast-vote (proposal-id uint) (choice uint))
   (begin
     (asserts! (and (>= proposal-id u1) (< proposal-id (var-get next-proposal-id))) (err ERR_PROPOSAL_MISSING))
@@ -110,31 +123,41 @@
         (err ERR_VOTING_CLOSED)
         (if (or (< stacks-block-height (get start-height proposal)) (> stacks-block-height (get end-height proposal)))
           (err ERR_VOTING_CLOSED)
-          (if (is-some (map-get? receipts { id: proposal-id, voter: tx-sender }))
-            (err ERR_ALREADY_VOTED)
-            (let (
-              (for-delta (if (is-eq choice CHOICE_FOR) u1 u0))
-              (against-delta (if (is-eq choice CHOICE_AGAINST) u1 u0))
-              (abstain-delta (if (is-eq choice CHOICE_ABSTAIN) u1 u0))
-            )
-              (map-set receipts { id: proposal-id, voter: tx-sender } { choice: choice, weight: u1 })
-              (map-set proposals { id: proposal-id }
-                {
-                  proposer: (get proposer proposal),
-                  adapter: ADAPTER,
-                  payload: (get payload proposal),
-                  start-height: (get start-height proposal),
-                  end-height: (get end-height proposal),
-                  eta: (get eta proposal),
-                  for-votes: (+ (get for-votes proposal) for-delta),
-                  against-votes: (+ (get against-votes proposal) against-delta),
-                  abstain-votes: (+ (get abstain-votes proposal) abstain-delta),
-                  executed: (get executed proposal),
-                  cancelled: (get cancelled proposal),
-                  snapshot-supply: (get snapshot-supply proposal),
-                  adapter-hash: (get adapter-hash proposal)
-                })
-              (ok true))))))))
+          (let (
+            (delegator (fold
+              (lambda (acc principal)
+                (if (is-eq (default-to principal (map-get? delegation acc)) principal)
+                  acc
+                  (default-to principal (map-get? delegation acc))))
+              tx-sender
+              (list tx-sender)))
+            (already-voted (is-some (map-get? receipts { id: proposal-id, voter: delegator })))
+          )
+            (if already-voted
+              (err ERR_ALREADY_VOTED)
+              (let (
+                (for-delta (if (is-eq choice CHOICE_FOR) u1 u0))
+                (against-delta (if (is-eq choice CHOICE_AGAINST) u1 u0))
+                (abstain-delta (if (is-eq choice CHOICE_ABSTAIN) u1 u0))
+              )
+                (map-set receipts { id: proposal-id, voter: delegator } { choice: choice, weight: u1 })
+                (map-set proposals { id: proposal-id }
+                  {
+                    proposer: (get proposer proposal),
+                    adapter: ADAPTER,
+                    payload: (get payload proposal),
+                    start-height: (get start-height proposal),
+                    end-height: (get end-height proposal),
+                    eta: (get eta proposal),
+                    for-votes: (+ (get for-votes proposal) for-delta),
+                    against-votes: (+ (get against-votes proposal) against-delta),
+                    abstain-votes: (+ (get abstain-votes proposal) abstain-delta),
+                    executed: (get executed proposal),
+                    cancelled: (get cancelled proposal),
+                    snapshot-supply: (get snapshot-supply proposal),
+                    adapter-hash: (get adapter-hash proposal)
+                  })
+                (ok true)))))))))
 
 (define-read-only (proposal-passes (proposal-id uint))
   (let (
