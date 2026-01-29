@@ -7,6 +7,8 @@ import { getContractOwner } from "@/lib/constants";
 import { contractPrincipalCV } from "@stacks/transactions";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { getExplorerTxLink } from "@/lib/explorer";
 
 export default function CreateProposalPage() {
   const router = useRouter();
@@ -23,10 +25,18 @@ export default function CreateProposalPage() {
       functionName: "propose",
       functionArgs: [adapter, payload],
       onFinish: (data) => {
-        console.log("Proposal broadcasted", data.txId);
-        // In a real app we'd wait for mempool inclusion
+        toast.success("Proposal broadcasted!", {
+          description: "It may take a few minutes to appear.",
+          action: {
+            label: "View on Explorer",
+            onClick: () => window.open(getExplorerTxLink(data.txId), "_blank"),
+          },
+        });
         router.push("/");
       },
+      onCancel: () => {
+        toast("Proposal cancelled");
+      }
     });
   };
 
