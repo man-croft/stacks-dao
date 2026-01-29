@@ -4,6 +4,7 @@
 (use-trait ft-trait .token-trait-v1.ft-trait)
 
 (define-constant ERR_PROPOSAL_MISSING u102)
+(define-constant ERR_VOTING_NOT_OVER u103) ;; Renamed from ERR_VOTING_CLOSED for clarity
 (define-constant ERR_VOTING_CLOSED u104)
 (define-constant ERR_ALREADY_VOTED u105)
 (define-constant ERR_ALREADY_QUEUED u106)
@@ -58,6 +59,9 @@
 )
 
 (define-private (proposal-threshold (supply uint))
+  ;; WARNING: With ASSUMED_TOTAL_SUPPLY u100, if proposal-threshold-percent > 1,
+  ;; the threshold becomes > 1. Since users have voting power u1, no one can propose.
+  ;; Keep proposal-threshold-percent <= 1% for 1p1v model.
   (/ (* supply (var-get proposal-threshold-percent)) ONE_HUNDRED)
 )
 
@@ -193,7 +197,7 @@
         (if (is-some (get eta proposal))
           (err ERR_ALREADY_QUEUED)
           (if (< block-height (get end-height proposal))
-            (err ERR_VOTING_CLOSED)
+            (err ERR_VOTING_NOT_OVER)
             (if (try! (proposal-passes pid))
               (begin
                 (map-set proposals { id: pid }
