@@ -4,6 +4,7 @@
 (use-trait ft-trait .token-trait-v1.ft-trait)
 
 (define-constant ERR_PROPOSAL_MISSING u102)
+(define-constant ERR_VOTING_NOT_OVER u103) ;; Renamed from ERR_VOTING_CLOSED for clarity
 (define-constant ERR_VOTING_CLOSED u104)
 (define-constant ERR_ALREADY_VOTED u105)
 (define-constant ERR_ALREADY_QUEUED u106)
@@ -193,7 +194,7 @@
         (if (is-some (get eta proposal))
           (err ERR_ALREADY_QUEUED)
           (if (< block-height (get end-height proposal))
-            (err ERR_VOTING_CLOSED)
+            (err ERR_VOTING_NOT_OVER)
             (if (try! (proposal-passes pid))
               (begin
                 (map-set proposals { id: pid }
