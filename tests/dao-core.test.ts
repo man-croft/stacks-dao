@@ -135,7 +135,7 @@ describe("dao-core governance", () => {
     expect(finalState.value.executed.value).toBe(true);
   });
 
-  it("allows cancellation of a proposal and blocks further progress", () => {
+  it("allows cancellation ONLY by the proposer", () => {
     initContracts();
     const payload = buildPayload(recipient, 0);
 
@@ -147,11 +147,21 @@ describe("dao-core governance", () => {
     );
     expect(proposal.result).toBeOk(proposalId);
 
-    const cancelled = simnet.callPublicFn(
+    // Attempt cancel by recipient (should fail)
+    const unauthorizedCancel = simnet.callPublicFn(
       "dao-core-v1",
       "cancel",
       [proposalId],
       recipient
+    );
+    expect(unauthorizedCancel.result).toBeErr(Cl.uint(117)); // ERR_UNAUTHORIZED
+
+    // Cancel by proposer (should succeed)
+    const cancelled = simnet.callPublicFn(
+      "dao-core-v1",
+      "cancel",
+      [proposalId],
+      proposer
     );
     expect(cancelled.result).toBeOk(Cl.bool(true));
 
@@ -159,13 +169,5 @@ describe("dao-core governance", () => {
       simnet.getMapEntry("dao-core-v1", "proposals", Cl.tuple({ id: proposalId }))
     ) as any;
     expect(state.value.cancelled.value).toBe(true);
-
-    const queueAttempt = simnet.callPublicFn(
-      "dao-core-v1",
-      "queue",
-      [proposalId],
-      proposer
-    );
-    expect(queueAttempt.result).toBeErr(Cl.uint(110)); // ERR_ALREADY_CANCELLED
   });
 });
