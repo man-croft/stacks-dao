@@ -2,6 +2,8 @@
 
 import { useProposal } from "@/hooks/use-proposal";
 
+import Link from "next/link";
+
 // Mock list of IDs for MVP since we don't have an indexer yet
 const RECENT_PROPOSALS = [1, 2, 3];
 
@@ -25,16 +27,16 @@ function ProposalCard({ id }: { id: number }) {
   
   // Placeholder state for now
   return (
-    <div className="rounded-xl border border-white/10 bg-white/5 p-4 transition hover:bg-white/10">
+    <Link href={`/proposals/${id}`} className="block rounded-xl border border-white/10 bg-white/5 p-4 transition hover:bg-white/10">
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium text-white/60">Proposal #{id}</span>
         <span className="rounded-full bg-white/10 px-2 py-1 text-xs text-white/60">
           Pending
         </span>
       </div>
-      <div className="mt-2 text-lg font-medium">
+      <div className="mt-2 text-lg font-medium text-white/90">
         Execute Transfer
       </div>
-    </div>
+    </Link>
   );
 }
