@@ -35,9 +35,20 @@ export function useProposal(id: number) {
       });
 
       if (result) {
-        // cast result to proper type in real impl
-        // const value = cvToValue(result);
-        // setProposal(value);
+        const value = cvToValue(result);
+        if (value && value.value) {
+           // The result is (ok (some tuple)) or just (some tuple) depending on how read-only returns.
+           // Clarinet/Stacks.js read-only returns the CV directly.
+           // get-proposal returns (optional tuple).
+           // cvToValue((some ...)) -> { type: 'some', value: { ... } } or just the object if simplified?
+           // cvToValue simplifies recursively.
+           // If result is ResponseOk, we unwrap.
+           
+           // Simpler approach:
+           setProposal(value.value); // Assuming result was (some ...)
+        } else {
+          setProposal(null);
+        }
       }
     } catch (e) {
       console.error(e);
