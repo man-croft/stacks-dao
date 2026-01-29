@@ -5,6 +5,8 @@ import { useWallet } from "@/components/wallet-provider";
 import { openContractCall } from "@stacks/connect";
 import { uintCV } from "@stacks/transactions";
 import { getContractOwner, STACKS_NETWORK_ENV } from "@/lib/constants";
+import { getExplorerTxLink } from "@/lib/explorer";
+import { toast } from "sonner";
 
 export function VoteControls({ proposalId }: { proposalId: number }) {
   const { address } = useWallet();
@@ -15,7 +17,6 @@ export function VoteControls({ proposalId }: { proposalId: number }) {
     setLoading(true);
     
     const owner = getContractOwner();
-    // Network config would be passed here in real app or inferred from env
     
     try {
       await openContractCall({
@@ -24,7 +25,12 @@ export function VoteControls({ proposalId }: { proposalId: number }) {
         functionName: "cast-vote",
         functionArgs: [uintCV(proposalId), uintCV(choice)],
         onFinish: (data) => {
-          console.log("Tx broadcasted:", data.txId);
+          toast.success("Vote broadcasted!", {
+            action: {
+              label: "View on Explorer",
+              onClick: () => window.open(getExplorerTxLink(data.txId), "_blank"),
+            },
+          });
           setLoading(false);
         },
         onCancel: () => {
@@ -33,6 +39,7 @@ export function VoteControls({ proposalId }: { proposalId: number }) {
       });
     } catch (e) {
       console.error(e);
+      toast.error("Failed to broadcast vote");
       setLoading(false);
     }
   };
