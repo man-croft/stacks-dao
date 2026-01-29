@@ -212,7 +212,7 @@
                     snapshot-supply: (get snapshot-supply proposal),
                     adapter-hash: (get adapter-hash proposal)
                   })
-                (print { event: "proposal-queued", proposal-id: pid, eta: (+ block-height TIMELOCK) })
+                (print { event: "proposal-queued", proposal-id: pid, eta: (+ block-height (var-get timelock)) })
                 (ok true))
               (err ERR_NOT_PASSED))))))))
 
