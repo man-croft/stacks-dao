@@ -212,7 +212,7 @@
                     snapshot-supply: (get snapshot-supply proposal),
                     adapter-hash: (get adapter-hash proposal)
                   })
-                (print { event: "proposal-queued", proposal-id: pid, eta: (+ block-height TIMELOCK) })
+                (print { event: "proposal-queued", proposal-id: pid, eta: (+ block-height (var-get timelock)) })
                 (ok true))
               (err ERR_NOT_PASSED))))))))
 
@@ -263,24 +263,23 @@
   )
     (if (get cancelled proposal)
       (err ERR_ALREADY_CANCELLED)
-      (if (< u1 (proposal-threshold (get snapshot-supply proposal)))
-        (err ERR_INSUFFICIENT_POWER)
-        (begin
-          (map-set proposals { id: pid }
-            {
-              proposer: (get proposer proposal),
-              adapter: (get adapter proposal),
-              payload: (get payload proposal),
-              start-height: (get start-height proposal),
-              end-height: (get end-height proposal),
-              eta: (get eta proposal),
-              for-votes: (get for-votes proposal),
-              against-votes: (get against-votes proposal),
-              abstain-votes: (get abstain-votes proposal),
-              executed: (get executed proposal),
-              cancelled: true,
-              snapshot-supply: (get snapshot-supply proposal),
-              adapter-hash: (get adapter-hash proposal)
-            })
-          (print { event: "proposal-cancelled", proposal-id: pid })
-          (ok true))))))
+      (begin
+        (asserts! (is-eq tx-sender (get proposer proposal)) (err ERR_UNAUTHORIZED))
+        (map-set proposals { id: pid }
+          {
+            proposer: (get proposer proposal),
+            adapter: (get adapter proposal),
+            payload: (get payload proposal),
+            start-height: (get start-height proposal),
+            end-height: (get end-height proposal),
+            eta: (get eta proposal),
+            for-votes: (get for-votes proposal),
+            against-votes: (get against-votes proposal),
+            abstain-votes: (get abstain-votes proposal),
+            executed: (get executed proposal),
+            cancelled: true,
+            snapshot-supply: (get snapshot-supply proposal),
+            adapter-hash: (get adapter-hash proposal)
+          })
+        (print { event: "proposal-cancelled", proposal-id: pid })
+        (ok true)))))
