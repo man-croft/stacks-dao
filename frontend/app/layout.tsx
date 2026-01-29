@@ -1,3 +1,4 @@
+import { Toaster } from "sonner";
 import type { Metadata } from "next";
 import "./globals.css";
 
@@ -28,7 +29,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="antialiased bg-[#0b0d10] text-white">{children}</body>
+      <body className="antialiased bg-[#0b0d10] text-white">
+        {children}
+        <Toaster position="bottom-right" theme="dark" />
+      </body>
     </html>
   );
 }
