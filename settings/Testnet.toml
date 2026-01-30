@@ -1,0 +1,13 @@
+# Testnet configuration
+# To use: clarinet deploy --config settings/Testnet.toml --network testnet
+
+[network]
+name = "testnet"
+
+[accounts.deployer]
+mnemonic = "fetch outside black test wash cover just alter gargoyle orient pass exact"
+# Note: In a real scenario, we'd use a private key from env or a Ledger, but for this config file
+# we just define the profile. The actual deploy command usually overrides this or prompts.
+
+[accounts.wallet_1]
+mnemonic = "spoil sock coyote spirit style exotic distinct decide obtain rigid horde lake"
