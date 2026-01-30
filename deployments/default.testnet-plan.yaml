@@ -1,0 +1,52 @@
+---
+id: 0
+name: Testnet deployment
+network: testnet
+stacks-node: "https://api.testnet.hiro.so"
+bitcoin-node: "http://blockstack:blockstack@bitcoind.testnet.stacks.co:18332"
+plan:
+  - batches:
+      - id: 0
+        transactions:
+          - contract-publish:
+              contract-name: token-trait-v1
+              expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+              cost: 10000
+              path: contracts/traits/token.trait
+              anchor-block-only: true
+          - contract-publish:
+              contract-name: dao-adapter-trait
+              expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+              cost: 10000
+              path: contracts/traits/dao-adapter.trait
+              anchor-block-only: true
+          - contract-publish:
+              contract-name: treasury-trait
+              expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+              cost: 10000
+              path: contracts/traits/treasury.trait
+              anchor-block-only: true
+      - id: 1
+        transactions:
+          - contract-publish:
+              contract-name: dao-treasury-v1
+              expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+              cost: 10000
+              path: contracts/dao-treasury.clar
+              anchor-block-only: true
+      - id: 2
+        transactions:
+          - contract-publish:
+              contract-name: transfer-adapter-v1
+              expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+              cost: 10000
+              path: contracts/adapters/transfer-adapter.clar
+              anchor-block-only: true
+      - id: 3
+        transactions:
+          - contract-publish:
+              contract-name: dao-core-v1
+              expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+              cost: 10000
+              path: contracts/dao-core.clar
+              anchor-block-only: true
