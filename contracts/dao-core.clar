@@ -168,11 +168,12 @@
           (if (is-some (map-get? receipts { id: proposal-id, voter: tx-sender }))
             (err ERR_ALREADY_VOTED)
             (let (
-              (for-delta (if (is-eq choice CHOICE_FOR) u1 u0))
-              (against-delta (if (is-eq choice CHOICE_AGAINST) u1 u0))
-              (abstain-delta (if (is-eq choice CHOICE_ABSTAIN) u1 u0))
+              (weight (get-voting-power tx-sender))
+              (for-delta (if (is-eq choice CHOICE_FOR) weight u0))
+              (against-delta (if (is-eq choice CHOICE_AGAINST) weight u0))
+              (abstain-delta (if (is-eq choice CHOICE_ABSTAIN) weight u0))
             )
-              (map-set receipts { id: proposal-id, voter: tx-sender } { choice: choice, weight: u1 })
+              (map-set receipts { id: proposal-id, voter: tx-sender } { choice: choice, weight: weight })
               (map-set proposals { id: proposal-id }
                 {
                   proposer: (get proposer proposal),
@@ -189,7 +190,7 @@
                   snapshot-supply: (get snapshot-supply proposal),
                   adapter-hash: (get adapter-hash proposal)
                 })
-              (print { event: "vote-cast", proposal-id: proposal-id, voter: tx-sender, choice: choice, weight: u1, for: (+ (get for-votes proposal) for-delta), against: (+ (get against-votes proposal) against-delta), abstain: (+ (get abstain-votes proposal) abstain-delta) })
+              (print { event: "vote-cast", proposal-id: proposal-id, voter: tx-sender, choice: choice, weight: weight, for: (+ (get for-votes proposal) for-delta), against: (+ (get against-votes proposal) against-delta), abstain: (+ (get abstain-votes proposal) abstain-delta) })
               (ok true))))))))
 
 (define-read-only (get-parameters)
