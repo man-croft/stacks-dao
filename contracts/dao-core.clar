@@ -58,6 +58,39 @@
   { choice: uint, weight: uint }
 )
 
+;; Delegations: Delegator -> Delegate
+(define-map delegations principal principal)
+
+;; Track delegated power: Delegate -> Power
+(define-map delegated-power principal uint)
+
+(define-public (delegate-vote (delegate principal))
+  (begin
+    ;; Revoke old delegation if exists
+    (match (map-get? delegations tx-sender) old-delegate
+      (map-set delegated-power old-delegate (- (default-to u0 (map-get? delegated-power old-delegate)) u1))
+      true)
+    ;; Set new delegation
+    (map-set delegations tx-sender delegate)
+    (map-set delegated-power delegate (+ (default-to u0 (map-get? delegated-power delegate)) u1))
+    (print { event: "delegated", delegator: tx-sender, delegate: delegate })
+    (ok true)))
+
+(define-public (revoke-delegation)
+  (begin
+    (match (map-get? delegations tx-sender) old-delegate
+      (begin
+        (map-set delegated-power old-delegate (- (default-to u0 (map-get? delegated-power old-delegate)) u1))
+        (map-delete delegations tx-sender)
+        (print { event: "delegation-revoked", delegator: tx-sender })
+        (ok true))
+      (err ERR_UNAUTHORIZED)))) ;; Not delegating
+
+(define-private (get-voting-power (voter principal))
+  ;; Base power (1) + Delegated power
+  (+ u1 (default-to u0 (map-get? delegated-power voter)))
+)
+
 (define-private (proposal-threshold (supply uint))
   ;; WARNING: With ASSUMED_TOTAL_SUPPLY u100, if proposal-threshold-percent > 1,
   ;; the threshold becomes > 1. Since users have voting power u1, no one can propose.
