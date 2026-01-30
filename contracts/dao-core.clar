@@ -58,6 +58,39 @@
   { choice: uint, weight: uint }
 )
 
+;; Delegations: Delegator -> Delegate
+(define-map delegations principal principal)
+
+;; Track delegated power: Delegate -> Power
+(define-map delegated-power principal uint)
+
+(define-public (delegate-vote (delegate principal))
+  (begin
+    ;; Revoke old delegation if exists
+    (match (map-get? delegations tx-sender) old-delegate
+      (map-set delegated-power old-delegate (- (default-to u0 (map-get? delegated-power old-delegate)) u1))
+      true)
+    ;; Set new delegation
+    (map-set delegations tx-sender delegate)
+    (map-set delegated-power delegate (+ (default-to u0 (map-get? delegated-power delegate)) u1))
+    (print { event: "delegated", delegator: tx-sender, delegate: delegate })
+    (ok true)))
+
+(define-public (revoke-delegation)
+  (begin
+    (match (map-get? delegations tx-sender) old-delegate
+      (begin
+        (map-set delegated-power old-delegate (- (default-to u0 (map-get? delegated-power old-delegate)) u1))
+        (map-delete delegations tx-sender)
+        (print { event: "delegation-revoked", delegator: tx-sender })
+        (ok true))
+      (err ERR_UNAUTHORIZED)))) ;; Not delegating
+
+(define-private (get-voting-power (voter principal))
+  ;; Base power (1) + Delegated power
+  (+ u1 (default-to u0 (map-get? delegated-power voter)))
+)
+
 (define-private (proposal-threshold (supply uint))
   ;; WARNING: With ASSUMED_TOTAL_SUPPLY u100, if proposal-threshold-percent > 1,
   ;; the threshold becomes > 1. Since users have voting power u1, no one can propose.
@@ -135,11 +168,12 @@
           (if (is-some (map-get? receipts { id: proposal-id, voter: tx-sender }))
             (err ERR_ALREADY_VOTED)
             (let (
-              (for-delta (if (is-eq choice CHOICE_FOR) u1 u0))
-              (against-delta (if (is-eq choice CHOICE_AGAINST) u1 u0))
-              (abstain-delta (if (is-eq choice CHOICE_ABSTAIN) u1 u0))
+              (weight (get-voting-power tx-sender))
+              (for-delta (if (is-eq choice CHOICE_FOR) weight u0))
+              (against-delta (if (is-eq choice CHOICE_AGAINST) weight u0))
+              (abstain-delta (if (is-eq choice CHOICE_ABSTAIN) weight u0))
             )
-              (map-set receipts { id: proposal-id, voter: tx-sender } { choice: choice, weight: u1 })
+              (map-set receipts { id: proposal-id, voter: tx-sender } { choice: choice, weight: weight })
               (map-set proposals { id: proposal-id }
                 {
                   proposer: (get proposer proposal),
@@ -156,7 +190,7 @@
                   snapshot-supply: (get snapshot-supply proposal),
                   adapter-hash: (get adapter-hash proposal)
                 })
-              (print { event: "vote-cast", proposal-id: proposal-id, voter: tx-sender, choice: choice, weight: u1, for: (+ (get for-votes proposal) for-delta), against: (+ (get against-votes proposal) against-delta), abstain: (+ (get abstain-votes proposal) abstain-delta) })
+              (print { event: "vote-cast", proposal-id: proposal-id, voter: tx-sender, choice: choice, weight: weight, for: (+ (get for-votes proposal) for-delta), against: (+ (get against-votes proposal) against-delta), abstain: (+ (get abstain-votes proposal) abstain-delta) })
               (ok true))))))))
 
 (define-read-only (get-parameters)
