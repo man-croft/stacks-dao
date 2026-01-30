@@ -1,6 +1,7 @@
 import { ConnectButton } from "@/components/connect-button";
 import { WalletProvider } from "@/components/wallet-provider";
 import { ProposalList } from "@/components/proposal-list";
+import { SearchBar } from "@/components/search-bar";
 import Link from "next/link";
 
 export default function Home() {
@@ -12,12 +13,8 @@ export default function Home() {
             <div className="space-y-3">
               <p className="text-xs uppercase tracking-[0.2em] text-white/50">Stacks DAO</p>
               <h1 className="text-4xl font-semibold leading-tight md:text-5xl">
-                Govern the treasury with your wallet
+                Govern the treasury
               </h1>
-              <p className="text-sm text-white/70 max-w-2xl">
-                A minimal interface to connect, review proposals, and push on-chain
-                actions for the DAO.
-              </p>
             </div>
             <div className="flex items-center gap-3">
               <Link href="/proposals/create" className="rounded-full bg-emerald-500/10 border border-emerald-500/20 px-4 py-2 text-sm text-emerald-400 hover:bg-emerald-500/20 transition">
@@ -32,6 +29,7 @@ export default function Home() {
             </div>
 
             <div className="space-y-6">
+              <SearchBar />
               <div className="rounded-2xl border border-white/10 bg-white/5 px-6 py-5 shadow-inner">
                 <div className="flex items-center justify-between text-sm text-white/70">
                   <span>Connect your wallet</span>

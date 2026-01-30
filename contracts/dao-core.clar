@@ -168,6 +168,10 @@
   })
 )
 
+(define-read-only (get-total-proposals)
+  (var-get next-proposal-id)
+)
+
 (define-read-only (get-proposal (proposal-id uint))
   (map-get? proposals { id: proposal-id })
 )
