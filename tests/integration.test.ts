@@ -31,8 +31,14 @@ describe("Full DAO Lifecycle Integration", () => {
     expect(propose.result).toBeOk(proposalId);
 
     // 3. Vote
-    const vote = simnet.callPublicFn("dao-core-v1", "cast-vote", [proposalId, Cl.uint(1)], deployer); // For
-    expect(vote.result).toBeOk(Cl.bool(true));
+    const voters = simnet.getAccounts().values();
+    let votes = 0;
+    for (const voter of voters) {
+      if (votes >= 10) break; // Need 10 votes for quorum
+      const vote = simnet.callPublicFn("dao-core-v1", "cast-vote", [proposalId, Cl.uint(1)], voter);
+      expect(vote.result).toBeOk(Cl.bool(true));
+      votes++;
+    }
 
     // 4. Queue (Advance blocks)
     simnet.mineEmptyBlocks(2101); // Voting period
