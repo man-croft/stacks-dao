@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useProposal } from "@/hooks/use-proposal";
+import { Skeleton } from "@/components/skeleton";
+import { EmptyState } from "@/components/empty-state";
 import Link from "next/link";
 
 export function ProposalList() {
@@ -9,6 +11,9 @@ export function ProposalList() {
   // Mock IDs: In a real app, we'd fetch the total count and iterate
   const ids = [1, 2, 3, 4, 5];
 
+  // We filter client side for mock IDs, but we need to know if ALL are hidden
+  // Ideally, this logic moves up or we use a better data fetcher
+  
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -31,18 +36,23 @@ export function ProposalList() {
       </div>
 
       <div className="grid gap-4">
-        {ids.map((id) => (
-          <ProposalCard key={id} id={id} filter={filter} />
-        ))}
+        {ids.length === 0 ? (
+          <EmptyState actionHref="/proposals/create" actionLabel="Create Proposal" />
+        ) : (
+          ids.map((id) => (
+            <ProposalCard key={id} id={id} filter={filter} />
+          ))
+        )}
       </div>
     </div>
   );
 }
 
 function ProposalCard({ id, filter }: { id: number; filter: string }) {
-  const { proposal, loading } = useProposal(id);
+  const { proposal, loading, error } = useProposal(id); // Assuming hook returns error
 
-  if (loading) return <div className="h-24 animate-pulse rounded-xl bg-white/5" />;
+  if (loading) return <Skeleton className="h-32" />;
+  if (error) return null; // Or show error state
   if (!proposal) return null;
 
   // Client-side filtering logic
