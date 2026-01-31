@@ -18,9 +18,11 @@ export type ProposalData = {
 export function useProposal(id: number) {
   const [proposal, setProposal] = useState<ProposalData | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchProposal = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       // In a real app, you'd pick the network based on env
       const network = new StacksMocknet({ url: getApiUrl() }); 
@@ -37,21 +39,14 @@ export function useProposal(id: number) {
       if (result) {
         const value = cvToValue(result);
         if (value && value.value) {
-           // The result is (ok (some tuple)) or just (some tuple) depending on how read-only returns.
-           // Clarinet/Stacks.js read-only returns the CV directly.
-           // get-proposal returns (optional tuple).
-           // cvToValue((some ...)) -> { type: 'some', value: { ... } } or just the object if simplified?
-           // cvToValue simplifies recursively.
-           // If result is ResponseOk, we unwrap.
-           
-           // Simpler approach:
-           setProposal(value.value); // Assuming result was (some ...)
+           setProposal(value.value); 
         } else {
           setProposal(null);
         }
       }
     } catch (e) {
       console.error(e);
+      setError("Failed to fetch proposal details.");
     } finally {
       setLoading(false);
     }
@@ -61,5 +56,5 @@ export function useProposal(id: number) {
     fetchProposal();
   }, [fetchProposal]);
 
-  return { proposal, loading, refetch: fetchProposal };
+  return { proposal, loading, error, refetch: fetchProposal };
 }
