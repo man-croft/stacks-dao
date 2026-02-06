@@ -1,39 +1,86 @@
-;; DAO core logic using a single adapter and simple tokenless voting (1 vote per wallet).
+;; ============================================================================
+;; DAO Core - Governance Contract
+;; ============================================================================
+;; 
+;; This contract implements the core governance logic for a minimal DAO on Stacks.
+;; It uses a single adapter pattern and simple tokenless voting (1 vote per wallet).
+;;
+;; Key Features:
+;; - Proposal creation with adapter hash verification for security
+;; - Three-choice voting: For, Against, Abstain
+;; - Vote delegation support
+;; - Timelock-based execution with quorum requirements
+;; - Cancellation by proposer only
+;;
+;; Governance Parameters (configurable via set-parameter):
+;; - quorum-percent: Minimum participation required (default: 10%)
+;; - proposal-threshold-percent: Voting power needed to propose (default: 1%)
+;; - voting-period: Blocks for voting (default: 2100, ~2 weeks)
+;; - timelock: Blocks between queue and execution (default: 100, ~16 hours)
+;;
+;; Voting Model:
+;; Uses 1-person-1-vote (1p1v) with ASSUMED_TOTAL_SUPPLY of 100.
+;; Each wallet has base voting power of 1, plus any delegated power.
+;;
+;; Security:
+;; - Adapter hash is stored at proposal creation and verified at execution
+;; - This prevents malicious adapter upgrades between propose and execute
+;; ============================================================================
 
 (use-trait dao-adapter-trait .dao-adapter-v1.dao-adapter-trait)
 (use-trait ft-trait .token-trait-v1.ft-trait)
 
+;; ============================================================================
+;; Error Codes
+;; ============================================================================
 (define-constant ERR_PROPOSAL_MISSING u102)
-(define-constant ERR_VOTING_NOT_OVER u103) ;; Renamed from ERR_VOTING_CLOSED for clarity
-(define-constant ERR_VOTING_CLOSED u104)
+(define-constant ERR_VOTING_NOT_OVER u103)   ;; Voting period still active
+(define-constant ERR_VOTING_CLOSED u104)      ;; Voting period ended or proposal cancelled
 (define-constant ERR_ALREADY_VOTED u105)
 (define-constant ERR_ALREADY_QUEUED u106)
 (define-constant ERR_NOT_QUEUED u107)
-(define-constant ERR_TOO_EARLY u108)
+(define-constant ERR_TOO_EARLY u108)          ;; Timelock not expired
 (define-constant ERR_ALREADY_EXECUTED u109)
 (define-constant ERR_ALREADY_CANCELLED u110)
-(define-constant ERR_NOT_PASSED u112)
-(define-constant ERR_HASH_CHANGED u113)
+(define-constant ERR_NOT_PASSED u112)         ;; Quorum or majority not met
+(define-constant ERR_HASH_CHANGED u113)       ;; Adapter was modified
 (define-constant ERR_INSUFFICIENT_POWER u114)
 (define-constant ERR_INVALID_PAYLOAD u115)
 (define-constant ERR_INVALID_PARAMETER u116)
 (define-constant ERR_UNAUTHORIZED u117)
 
+;; ============================================================================
+;; Voting Choice Constants
+;; ============================================================================
 (define-constant CHOICE_AGAINST u0)
 (define-constant CHOICE_FOR u1)
 (define-constant CHOICE_ABSTAIN u2)
 
+;; ============================================================================
+;; Voting Model Constants
+;; ============================================================================
+;; The assumed total supply for quorum/threshold calculations.
+;; With 1p1v model and 10% quorum, need 10 voters to pass.
+;; 
+;; IMPORTANT: proposal-threshold-percent must be <= 1% for 1p1v model.
+;; Since each voter has power 1, a threshold > 1% would require power > 1,
+;; making it impossible to create proposals.
 (define-constant ONE_HUNDRED u100)
 (define-constant ASSUMED_TOTAL_SUPPLY u100)
 
-;; Governance Parameters (Upgradeable)
-(define-data-var quorum-percent uint u10)
-(define-data-var proposal-threshold-percent uint u1)
-(define-data-var voting-period uint u2100)
-(define-data-var timelock uint u100)
+;; ============================================================================
+;; Governance Parameters (Upgradeable via set-parameter)
+;; ============================================================================
+(define-data-var quorum-percent uint u10)             ;; 10% of votes needed
+(define-data-var proposal-threshold-percent uint u1)  ;; 1% power to propose
+(define-data-var voting-period uint u2100)            ;; ~2 weeks in blocks
+(define-data-var timelock uint u100)                  ;; ~16 hours in blocks
 
 (define-data-var next-proposal-id uint u1)
 
+;; ============================================================================
+;; Data Maps
+;; ============================================================================
 (define-map proposals
   { id: uint }
   {
@@ -58,12 +105,18 @@
   { choice: uint, weight: uint }
 )
 
-;; Delegations: Delegator -> Delegate
+;; Delegation: maps delegator -> delegate
 (define-map delegations principal principal)
 
-;; Track delegated power: Delegate -> Power
+;; Tracks accumulated delegated power for each delegate
 (define-map delegated-power principal uint)
 
+;; ============================================================================
+;; Delegation Functions
+;; ============================================================================
+
+;; Delegate your voting power to another address
+;; Revokes previous delegation if one exists
 (define-public (delegate-vote (delegate principal))
   (begin
     ;; Revoke old delegation if exists
@@ -76,6 +129,7 @@
     (print { event: "delegated", delegator: tx-sender, delegate: delegate })
     (ok true)))
 
+;; Revoke your delegation
 (define-public (revoke-delegation)
   (begin
     (match (map-get? delegations tx-sender) old-delegate
@@ -86,22 +140,31 @@
         (ok true))
       (err ERR_UNAUTHORIZED)))) ;; Not delegating
 
+;; ============================================================================
+;; Internal Helper Functions
+;; ============================================================================
+
+;; Calculate voting power: base power (1) + delegated power
 (define-private (get-voting-power (voter principal))
-  ;; Base power (1) + Delegated power
   (+ u1 (default-to u0 (map-get? delegated-power voter)))
 )
 
+;; Calculate minimum voting power needed to create a proposal
+;; Note: With 1p1v model (power=1), threshold must be <= 1% to allow proposals
 (define-private (proposal-threshold (supply uint))
-  ;; WARNING: With ASSUMED_TOTAL_SUPPLY u100, if proposal-threshold-percent > 1,
-  ;; the threshold becomes > 1. Since users have voting power u1, no one can propose.
-  ;; Keep proposal-threshold-percent <= 1% for 1p1v model.
   (/ (* supply (var-get proposal-threshold-percent)) ONE_HUNDRED)
 )
 
+;; Calculate minimum total votes needed for quorum
 (define-private (quorum-needed (supply uint))
   (/ (* supply (var-get quorum-percent)) ONE_HUNDRED)
 )
 
+;; ============================================================================
+;; Parameter Management
+;; ============================================================================
+
+;; Update governance parameters (only callable by this contract)
 (define-public (set-parameter (parameter (string-ascii 32)) (value uint))
   (begin
     (asserts! (is-eq contract-caller (as-contract tx-sender)) (err ERR_UNAUTHORIZED))
