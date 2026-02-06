@@ -1,52 +1,47 @@
 import { useCallback, useEffect, useState } from "react";
-import { callReadOnlyFunction, cvToValue, uintCV, ResponseOkCV, TupleCV } from "@stacks/transactions";
-import { getApiUrl, getContractOwner } from "@/lib/constants";
-import { StacksMocknet, StacksTestnet, StacksMainnet } from "@stacks/network";
+import { getProposal, Proposal } from "@/lib/stacks-client";
+import { getContractOwner, CONTRACT_NAMES } from "@/lib/constants";
 
-const DEPLOYER = getContractOwner();
-const CONTRACT_NAME = "dao-core-v1";
+// Re-export types for convenience
+export type { Proposal } from "@/lib/stacks-client";
 
-export type ProposalData = {
-  proposer: string;
-  "for-votes": number;
-  "against-votes": number;
-  executed: boolean;
-  cancelled: boolean;
-  "end-height": number;
-};
+// Legacy type alias for backward compatibility
+export type ProposalData = Proposal;
 
+/**
+ * React hook to fetch and manage proposal data
+ * @param id - The proposal ID to fetch
+ * @returns Object with proposal data, loading state, error, and refetch function
+ */
 export function useProposal(id: number) {
-  const [proposal, setProposal] = useState<ProposalData | null>(null);
+  const [proposal, setProposal] = useState<Proposal | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchProposal = useCallback(async () => {
+    // Validate ID
+    if (id < 1) {
+      setProposal(null);
+      setError("Invalid proposal ID");
+      return;
+    }
+
     setLoading(true);
     setError(null);
-    try {
-      // In a real app, you'd pick the network based on env
-      const network = new StacksMocknet({ url: getApiUrl() }); 
-      
-      const result = await callReadOnlyFunction({
-        contractAddress: DEPLOYER,
-        contractName: CONTRACT_NAME,
-        functionName: "get-proposal",
-        functionArgs: [uintCV(id)],
-        senderAddress: DEPLOYER,
-        network,
-      });
 
+    try {
+      const result = await getProposal(id);
+      
       if (result) {
-        const value = cvToValue(result);
-        if (value && value.value) {
-           setProposal(value.value); 
-        } else {
-          setProposal(null);
-        }
+        setProposal(result);
+      } else {
+        setProposal(null);
+        // Not an error - proposal may not exist yet
       }
     } catch (e) {
-      console.error(e);
+      console.error(`Error fetching proposal ${id}:`, e);
       setError("Failed to fetch proposal details.");
+      setProposal(null);
     } finally {
       setLoading(false);
     }
@@ -57,4 +52,31 @@ export function useProposal(id: number) {
   }, [fetchProposal]);
 
   return { proposal, loading, error, refetch: fetchProposal };
+}
+
+/**
+ * Computed properties for proposal state
+ */
+export function getProposalStatus(proposal: Proposal | null): string {
+  if (!proposal) return "unknown";
+  if (proposal.executed) return "executed";
+  if (proposal.cancelled) return "cancelled";
+  if (proposal.eta) return "queued";
+  return "active";
+}
+
+/**
+ * Check if voting is still open for a proposal
+ * Note: This requires knowing the current block height
+ */
+export function isVotingOpen(
+  proposal: Proposal | null,
+  currentBlockHeight: number
+): boolean {
+  if (!proposal) return false;
+  if (proposal.executed || proposal.cancelled) return false;
+  return (
+    currentBlockHeight >= proposal["start-height"] &&
+    currentBlockHeight <= proposal["end-height"]
+  );
 }
