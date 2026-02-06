@@ -39,6 +39,11 @@ epoch = '2.5'
 path = 'contracts/mocks/mock-ft.clar'
 clarity_version = 2
 epoch = '2.5'
+
+[contracts.malicious-adapter-v1]
+path = 'contracts/mocks/malicious-adapter.clar'
+clarity_version = 2
+epoch = '2.5'
 [repl.analysis]
 passes = ['check_checker']
 
