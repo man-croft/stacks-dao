@@ -221,22 +221,78 @@ export async function checkProposalPasses(proposalId: number): Promise<boolean> 
 }
 
 /**
- * Fetch multiple proposals by ID range
+ * Fetch multiple proposals by ID range using parallel requests
+ * 
+ * @param startId - Starting proposal ID (default: 1)
+ * @param limit - Maximum number of proposals to fetch (default: 10)
+ * @param batchSize - Number of concurrent requests (default: 5)
+ * @returns Array of proposals, ordered by ID ascending
  */
 export async function getProposals(
   startId: number = 1,
-  limit: number = 10
+  limit: number = 10,
+  batchSize: number = 5
 ): Promise<Proposal[]> {
-  const proposals: Proposal[] = [];
   const total = await getTotalProposals();
   const endId = Math.min(startId + limit - 1, total);
-
-  for (let id = startId; id <= endId; id++) {
-    const proposal = await getProposal(id);
-    if (proposal) {
-      proposals.push(proposal);
-    }
+  
+  if (endId < startId) {
+    return [];
   }
 
-  return proposals;
+  // Create array of IDs to fetch
+  const ids: number[] = [];
+  for (let id = startId; id <= endId; id++) {
+    ids.push(id);
+  }
+
+  // Fetch in parallel batches to avoid overwhelming the API
+  const results: (Proposal | null)[] = [];
+  
+  for (let i = 0; i < ids.length; i += batchSize) {
+    const batchIds = ids.slice(i, i + batchSize);
+    const batchPromises = batchIds.map((id) => getProposal(id));
+    const batchResults = await Promise.all(batchPromises);
+    results.push(...batchResults);
+  }
+
+  // Filter out null results and maintain order
+  return results.filter((p): p is Proposal => p !== null);
+}
+
+/**
+ * Fetch all proposals using parallel requests
+ * 
+ * @param batchSize - Number of concurrent requests (default: 5)
+ * @returns Array of all proposals, ordered by ID ascending
+ */
+export async function getAllProposals(batchSize: number = 5): Promise<Proposal[]> {
+  const total = await getTotalProposals();
+  if (total === 0) {
+    return [];
+  }
+  return getProposals(1, total, batchSize);
+}
+
+/**
+ * Fetch the most recent proposals using parallel requests
+ * 
+ * @param limit - Maximum number of proposals to fetch (default: 10)
+ * @param batchSize - Number of concurrent requests (default: 5)
+ * @returns Array of proposals, ordered by ID descending (newest first)
+ */
+export async function getRecentProposals(
+  limit: number = 10,
+  batchSize: number = 5
+): Promise<Proposal[]> {
+  const total = await getTotalProposals();
+  if (total === 0) {
+    return [];
+  }
+  
+  const startId = Math.max(1, total - limit + 1);
+  const proposals = await getProposals(startId, limit, batchSize);
+  
+  // Return in reverse order (newest first)
+  return proposals.reverse();
 }
