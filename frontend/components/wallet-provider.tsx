@@ -14,6 +14,7 @@ import React, {
   useMemo,
   useState,
 } from "react";
+import { STACKS_NETWORK_ENV } from "@/lib/constants";
 
 const appConfig = new AppConfig(["store_write", "publish_data"]);
 export const userSession = new UserSession({ appConfig });
@@ -27,13 +28,25 @@ type WalletContextValue = {
 
 const WalletContext = createContext<WalletContextValue | undefined>(undefined);
 
+/**
+ * Get the appropriate STX address based on network environment
+ */
+function getStxAddress(userData: { profile: { stxAddress: { mainnet: string; testnet: string } } }): string {
+  if (STACKS_NETWORK_ENV === "mainnet") {
+    return userData.profile.stxAddress.mainnet;
+  }
+  // Both testnet and devnet use testnet addresses
+  return userData.profile.stxAddress.testnet;
+}
+
 export function WalletProvider({ children }: { children: React.ReactNode }) {
   const [address, setAddress] = useState<string | null>(null);
   const [connecting, setConnecting] = useState(false);
 
   useEffect(() => {
     if (userSession.isUserSignedIn()) {
-      setAddress(userSession.loadUserData().profile.stxAddress.testnet);
+      const userData = userSession.loadUserData();
+      setAddress(getStxAddress(userData));
     }
   }, []);
 
@@ -48,7 +61,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       redirectTo: "/",
       onFinish: () => {
         const userData = userSession.loadUserData();
-        setAddress(userData.profile.stxAddress.testnet);
+        setAddress(getStxAddress(userData));
         setConnecting(false);
       },
       onCancel: () => {
