@@ -13,7 +13,7 @@ export default function ProposalPage({ params }: { params: Promise<{ id: string 
 
   if (loading) {
     return (
-      <main className="min-h-screen px-6 py-12 flex items-center justify-center text-white/50">
+      <main className="min-h-screen px-4 sm:px-6 py-6 sm:py-12 flex items-center justify-center text-white/50">
         Loading proposal...
       </main>
     );
@@ -21,7 +21,7 @@ export default function ProposalPage({ params }: { params: Promise<{ id: string 
 
   if (!proposal) {
     return (
-      <main className="min-h-screen px-6 py-12 flex flex-col items-center justify-center gap-4">
+      <main className="min-h-screen px-4 sm:px-6 py-6 sm:py-12 flex flex-col items-center justify-center gap-4">
         <h1 className="text-xl font-bold text-white/90">Proposal not found</h1>
         <Link href="/" className="text-emerald-400 hover:underline">Return Home</Link>
       </main>
@@ -29,10 +29,11 @@ export default function ProposalPage({ params }: { params: Promise<{ id: string 
   }
 
   return (
-    <main className="min-h-screen px-6 py-12 flex justify-center">
-      <div className="w-full max-w-2xl space-y-8">
-        <Link href="/" className="text-sm text-white/50 hover:text-white transition">
-          ← Back to Dashboard
+    <main className="min-h-screen px-4 sm:px-6 py-6 sm:py-12 flex justify-center">
+      <div className="w-full max-w-2xl space-y-6 sm:space-y-8">
+        <Link href="/" className="text-sm text-white/50 hover:text-white transition inline-flex items-center gap-1">
+          <span>←</span> <span className="hidden sm:inline">Back to Dashboard</span>
+          <span className="sm:hidden">Back</span>
         </Link>
         
         <header>
@@ -41,10 +42,10 @@ export default function ProposalPage({ params }: { params: Promise<{ id: string 
               Proposal #{id}
             </span>
           </div>
-          <h1 className="text-3xl font-bold text-white/90">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white/90">
              Execute Transfer
           </h1>
-          <p className="text-white/60 mt-2">
+          <p className="text-white/60 mt-2 text-sm sm:text-base">
             Proposer: <span className="font-mono text-xs bg-white/10 px-1 py-0.5 rounded">{proposal.proposer}</span>
           </p>
         </header>
