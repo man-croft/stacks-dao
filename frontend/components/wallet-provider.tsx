@@ -34,7 +34,8 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (userSession.isUserSignedIn()) {
-      setAddress(userSession.loadUserData().profile.stxAddress.testnet);
+      const networkKey = getNetworkAddressKey();
+      setAddress(userSession.loadUserData().profile.stxAddress[networkKey]);
     }
   }, []);
 
