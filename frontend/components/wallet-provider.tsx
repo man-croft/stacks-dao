@@ -50,7 +50,8 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       redirectTo: "/",
       onFinish: () => {
         const userData = userSession.loadUserData();
-        setAddress(userData.profile.stxAddress.testnet);
+        const networkKey = getNetworkAddressKey();
+        setAddress(userData.profile.stxAddress[networkKey]);
         setConnecting(false);
       },
       onCancel: () => {
