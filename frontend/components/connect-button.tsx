@@ -8,7 +8,7 @@ export function ConnectButton() {
   const [busy, setBusy] = useState(false);
 
   const short = address
-    ? `${address.slice(0, 6)}...${address.slice(-4)}`
+    ? `${address.slice(0, 4)}...${address.slice(-4)}`
     : null;
 
   const statusLabel = (() => {
@@ -34,7 +34,7 @@ export function ConnectButton() {
   return (
     <button
       onClick={onClick}
-      className="rounded-full border border-white/20 bg-white/5 px-4 py-2 text-sm font-medium shadow-[0_10px_40px_rgba(0,0,0,0.35)] transition duration-150 hover:-translate-y-[1px] hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
+      className="w-full sm:w-auto rounded-full border border-white/20 bg-white/5 px-3 sm:px-4 py-2.5 sm:py-2 text-xs sm:text-sm font-medium shadow-[0_10px_40px_rgba(0,0,0,0.35)] transition duration-150 hover:-translate-y-[1px] hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60 min-h-[44px] touch-manipulation"
       disabled={busy || connecting}
       aria-busy={busy || connecting}
       data-state={address ? "connected" : "disconnected"}
