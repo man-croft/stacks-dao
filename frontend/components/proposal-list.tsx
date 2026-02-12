@@ -80,8 +80,8 @@ export function ProposalList() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-white/90">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <h2 className="text-lg sm:text-xl font-semibold text-white/90">
           Proposals
           {ids.length > 0 && (
             <span className="ml-2 text-sm font-normal text-white/40">
@@ -89,12 +89,12 @@ export function ProposalList() {
             </span>
           )}
         </h2>
-        <div className="flex gap-1 bg-white/5 p-1 rounded-lg">
+        <div className="flex gap-1 bg-white/5 p-1 rounded-lg overflow-x-auto">
           {filterOptions.map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-md capitalize transition ${
+              className={`px-2 sm:px-3 py-1.5 text-xs font-medium rounded-md capitalize transition whitespace-nowrap ${
                 filter === f
                   ? "bg-white/10 text-white"
                   : "text-white/50 hover:text-white/80"
@@ -156,14 +156,14 @@ function ProposalCard({ id, filter }: { id: number; filter: FilterType }) {
   return (
     <Link
       href={`/proposals/${id}`}
-      className="block rounded-xl border border-white/10 bg-white/5 p-4 transition hover:bg-white/10"
+      className="block rounded-lg sm:rounded-xl border border-white/10 bg-white/5 p-3 sm:p-4 transition hover:bg-white/10"
     >
-      <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-white/60">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <span className="text-xs sm:text-sm font-medium text-white/60">
           Proposal #{id}
         </span>
         <span
-          className={`rounded-full px-2 py-1 text-xs capitalize ${
+          className={`rounded-full px-2 py-1 text-xs capitalize self-start sm:self-auto ${
             statusStyles[status] || statusStyles.active
           }`}
         >
@@ -171,13 +171,13 @@ function ProposalCard({ id, filter }: { id: number; filter: FilterType }) {
         </span>
       </div>
       
-      <div className="mt-2 text-lg font-medium text-white/90">
+      <div className="mt-2 text-base sm:text-lg font-medium text-white/90">
         {getProposalTitle(proposal)}
       </div>
       
-      <div className="mt-3 flex items-center gap-6">
+      <div className="mt-3 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6">
         <div className="flex items-center gap-2">
-          <div className="flex gap-1">
+          <div className="flex gap-1 text-sm sm:text-base">
             <span className="text-emerald-400">{proposal["for-votes"]}</span>
             <span className="text-white/30">/</span>
             <span className="text-rose-400">{proposal["against-votes"]}</span>
