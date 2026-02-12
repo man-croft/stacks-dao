@@ -14,6 +14,7 @@ import React, {
   useMemo,
   useState,
 } from "react";
+import { getNetworkAddressKey } from "@/lib/network";
 
 const appConfig = new AppConfig(["store_write", "publish_data"]);
 export const userSession = new UserSession({ appConfig });
