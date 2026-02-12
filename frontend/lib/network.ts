@@ -22,3 +22,7 @@ const selected = registry[env as keyof typeof registry] || fallback;
 
 export const network = selected.network;
 export const networkName = selected.label;
+
+export function getNetworkAddressKey(): "mainnet" | "testnet" {
+	return selected.label === "mainnet" ? "mainnet" : "testnet";
+}

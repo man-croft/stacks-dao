@@ -14,6 +14,7 @@ import React, {
   useMemo,
   useState,
 } from "react";
+import { getNetworkAddressKey } from "@/lib/network";
 
 const appConfig = new AppConfig(["store_write", "publish_data"]);
 export const userSession = new UserSession({ appConfig });
@@ -33,7 +34,8 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (userSession.isUserSignedIn()) {
-      setAddress(userSession.loadUserData().profile.stxAddress.testnet);
+      const networkKey = getNetworkAddressKey();
+      setAddress(userSession.loadUserData().profile.stxAddress[networkKey]);
     }
   }, []);
 
@@ -48,7 +50,8 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       redirectTo: "/",
       onFinish: () => {
         const userData = userSession.loadUserData();
-        setAddress(userData.profile.stxAddress.testnet);
+        const networkKey = getNetworkAddressKey();
+        setAddress(userData.profile.stxAddress[networkKey]);
         setConnecting(false);
       },
       onCancel: () => {
