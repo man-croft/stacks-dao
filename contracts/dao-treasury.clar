@@ -40,3 +40,23 @@
     (try! (as-contract (contract-call? token transfer amount tx-sender recipient memo)))
     (print { event: "ft-transfer", token: (contract-of token), amount: amount, recipient: recipient })
     (ok true)))
+
+;; ============================================================================
+;; Read-Only Balance Functions
+;; ============================================================================
+
+;; Get the STX balance held by this treasury
+(define-read-only (get-stx-balance)
+  (stx-get-balance (as-contract tx-sender)))
+
+;; Get the balance of a specific fungible token held by this treasury
+(define-read-only (get-ft-balance (token <ft-trait>))
+  (contract-call? token balance-of (as-contract tx-sender)))
+
+;; Get the current governor address
+(define-read-only (get-governor)
+  (var-get governor))
+
+;; Check if an address is an allowed invoker
+(define-read-only (is-allowed-invoker (invoker principal))
+  (default-to false (map-get? allowed-invokers invoker)))
